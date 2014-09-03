@@ -3,7 +3,8 @@
 
 #include "immintrin.h"
 
-const int SPONGE_STATE_LENGTH_I128  = 8; // 8 * 128bits = 1024bits
+const unsigned int SPONGE_STATE_LENGTH_I128  = 8; // 8 * 128bits = 1024bits
+const unsigned int SPONGE_RATE_LENGTH_I128 = SPONGE_STATE_LENGTH_I128 / 2;
 
 static const uint64_t sponge_blake2b_IV[16] = {
     0x0000000000000000ULL, 0x0000000000000000ULL,
@@ -23,7 +24,7 @@ struct sponge_s {
 sponge_t *
 sponge_new(void) {
     sponge_t *sponge = _mm_malloc(sizeof(sponge_t), 16);
-    for (int i = 0; i < SPONGE_STATE_LENGTH_I128; i++) {
+    for (unsigned int i = 0; i < SPONGE_STATE_LENGTH_I128; i++) {
         sponge->state[i] = *((__m128i *) (sponge_blake2b_IV + 2*i));
     }
 
