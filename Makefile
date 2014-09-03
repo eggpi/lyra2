@@ -1,4 +1,4 @@
-CFLAGS=-I./include/ -O3 -std=c99 -Wall -Wextra -Werror
+CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror
 
 all: lyra2
 
