@@ -1,10 +1,13 @@
 #include "sponge.h"
 #include "blake2b/blake2b-round.h"
 
-#include "immintrin.h"
+#include <immintrin.h>
+#include <assert.h>
+#include <string.h>
 
-const unsigned int SPONGE_STATE_LENGTH_I128  = 8; // 8 * 128bits = 1024bits
-const unsigned int SPONGE_RATE_LENGTH_I128 = SPONGE_STATE_LENGTH_I128 / 2;
+const size_t SPONGE_STATE_LENGTH_I128  = 8; // 8 * 128bits = 1024bits
+const size_t SPONGE_RATE_LENGTH_I128 = SPONGE_STATE_LENGTH_I128 / 2;
+const size_t SPONGE_RATE_SIZE_BYTES = SPONGE_RATE_LENGTH_I128 * sizeof(__m128i);
 
 static const uint64_t sponge_blake2b_IV[16] = {
     0x0000000000000000ULL, 0x0000000000000000ULL,
@@ -21,6 +24,7 @@ struct sponge_s {
   __m128i state[SPONGE_STATE_LENGTH_I128];
 };
 
+static inline void sponge_pad(uint8_t *data, size_t *datalen_bytes);
 static inline void sponge_compress(sponge_t *sponge);
 
 sponge_t *
@@ -36,6 +40,26 @@ sponge_new(void) {
 void
 sponge_destroy(sponge_t *sponge) {
     _mm_free(sponge);
+}
+
+void
+sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen_bytes) {
+    sponge_pad(data, &datalen_bytes);
+    const __m128i *data128 = (const __m128i *) data;
+    size_t datalen128 = datalen_bytes / sizeof(__m128i);
+
+    assert(datalen128 % SPONGE_RATE_LENGTH_I128 == 0);
+    while (datalen128) {
+        for (unsigned int i = 0; i < SPONGE_RATE_LENGTH_I128; i++) {
+            sponge->state[i] ^= data128[i];
+        }
+
+        sponge_compress(sponge);
+        data128 += SPONGE_RATE_LENGTH_I128;
+        datalen128 -= SPONGE_RATE_LENGTH_I128;
+    }
+
+    return;
 }
 
 void
@@ -56,6 +80,29 @@ sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen_bytes) {
     for (unsigned int i = 0; i < outlen128; i++) {
         out128[i] = sponge->state[i];
     }
+
+    return;
+}
+
+/**
+ * Append 10*1 padding to a chunk of data so its size is a multiple
+ * of SPONGE_RATE_SIZE_BYTES.
+ * Note: this function assumes there is extra space after |datalen_bytes|
+ * in |data| to accommodate the padding; it will not allocate extra memory.
+ */
+static inline void
+sponge_pad(uint8_t *data, size_t *datalen_bytes) {
+    data[(*datalen_bytes)++] = 0x80;
+
+    size_t mod = *datalen_bytes % SPONGE_RATE_SIZE_BYTES;
+    if (mod) {
+        size_t remaining = SPONGE_RATE_SIZE_BYTES - mod;
+        memset(data + *datalen_bytes, 0, remaining);
+        *datalen_bytes += remaining;
+    }
+
+    data[*datalen_bytes - 1] |= 0x01;
+    assert(*datalen_bytes % SPONGE_RATE_SIZE_BYTES == 0);
 
     return;
 }
