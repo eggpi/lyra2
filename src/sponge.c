@@ -21,6 +21,8 @@ struct sponge_s {
   __m128i state[SPONGE_STATE_LENGTH_I128];
 };
 
+static inline void sponge_compress(sponge_t *sponge);
+
 sponge_t *
 sponge_new(void) {
     sponge_t *sponge = _mm_malloc(sizeof(sponge_t), 16);
@@ -34,4 +36,46 @@ sponge_new(void) {
 void
 sponge_destroy(sponge_t *sponge) {
     _mm_free(sponge);
+}
+
+void
+sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen_bytes) {
+    __m128i *out128 = (__m128i *) out;
+    size_t outlen128 = outlen_bytes / sizeof(__m128i);
+
+    while (outlen128 > SPONGE_RATE_LENGTH_I128) {
+        for (unsigned int i = 0; i < SPONGE_RATE_LENGTH_I128; i++) {
+            out128[i] = sponge->state[i];
+        }
+
+        sponge_compress(sponge);
+        out128 += SPONGE_RATE_LENGTH_I128;
+        outlen128 -= SPONGE_RATE_LENGTH_I128;
+    }
+
+    for (unsigned int i = 0; i < outlen128; i++) {
+        out128[i] = sponge->state[i];
+    }
+
+    return;
+}
+
+static inline void
+sponge_compress(sponge_t *sponge) {
+    __m128i t0, t1, *v = sponge->state;
+
+    ROUND(0);
+    ROUND(1);
+    ROUND(2);
+    ROUND(3);
+    ROUND(4);
+    ROUND(5);
+    ROUND(6);
+    ROUND(7);
+    ROUND(8);
+    ROUND(9);
+    ROUND(10);
+    ROUND(11);
+
+    return;
 }
