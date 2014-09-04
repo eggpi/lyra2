@@ -4,16 +4,17 @@ all: lyra2
 
 .PHONY: test
 
-lyra2: main.o sponge.o
+lyra2: build/main.o build/sponge.o
 	$(CC) $(CFLAGS) $^ -o $@
 
-%.o: src/%.c
+build/%.o: src/%.c
+	mkdir -p build
 	$(CC) $^ $(CFLAGS) -c -o $@
 
 test: test/sponge_test
 	test/sponge_test
 
-test/sponge_test: test/sponge_test.o sponge.o
+test/sponge_test: test/sponge_test.o build/sponge.o
 	$(CC) $^ -o $@ -lcheck
 
 test/sponge_test.o: test/sponge_test.c
@@ -23,4 +24,4 @@ test/sponge_test.c: test/sponge_test.check
 	checkmk $^ > $@
 
 clean:
-	rm -f *.o lyra2 test/*.c test/sponge_test
+	rm -rf build/ lyra2 test/*.c test/sponge_test
