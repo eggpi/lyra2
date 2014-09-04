@@ -8,5 +8,16 @@ lyra2: main.o sponge.o
 %.o: src/%.c
 	$(CC) $^ $(CFLAGS) -c -o $@
 
+test: test/sponge_test
+
+test/sponge_test: test/sponge_test.o sponge.o
+	$(CC) $^ -o $@ -lcheck
+
+test/sponge_test.o: test/sponge_test.c
+	$(CC) -I./include/ $^ -c -o $@
+
+test/sponge_test.c: test/sponge_test.check
+	checkmk $^ > $@
+
 clean:
-	rm -f *.o lyra2
+	rm -f *.o lyra2 test/*.c test/sponge_test
