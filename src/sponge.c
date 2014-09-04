@@ -9,6 +9,8 @@ const size_t SPONGE_STATE_LENGTH_I128  = 8; // 8 * 128bits = 1024bits
 const size_t SPONGE_RATE_LENGTH_I128 = SPONGE_STATE_LENGTH_I128 / 2;
 const size_t SPONGE_RATE_SIZE_BYTES = SPONGE_RATE_LENGTH_I128 * sizeof(__m128i);
 
+const size_t SPONGE_EXTENDED_RATE_LENGTH_I128 = 6; // 6 * 128bits = 768bits
+
 static const uint64_t sponge_blake2b_IV[16] = {
     0x0000000000000000ULL, 0x0000000000000000ULL,
     0x0000000000000000ULL, 0x0000000000000000ULL,
@@ -67,14 +69,14 @@ sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, bool reduced) {
     __m128i *out128 = (__m128i *) out;
     size_t outlen128 = outlen / sizeof(__m128i);
 
-    while (outlen128 > SPONGE_RATE_LENGTH_I128) {
-        for (unsigned int i = 0; i < SPONGE_RATE_LENGTH_I128; i++) {
+    while (outlen128 >= SPONGE_EXTENDED_RATE_LENGTH_I128) {
+        for (unsigned int i = 0; i < SPONGE_EXTENDED_RATE_LENGTH_I128; i++) {
             out128[i] = sponge->state[i];
         }
 
         sponge_compress(sponge, reduced);
-        out128 += SPONGE_RATE_LENGTH_I128;
-        outlen128 -= SPONGE_RATE_LENGTH_I128;
+        out128 += SPONGE_EXTENDED_RATE_LENGTH_I128;
+        outlen128 -= SPONGE_EXTENDED_RATE_LENGTH_I128;
     }
 
     for (unsigned int i = 0; i < outlen128; i++) {
