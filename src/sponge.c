@@ -84,6 +84,26 @@ sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, bool reduced) {
     return;
 }
 
+void
+sponge_reduced_duplexing(sponge_t *sponge, const uint8_t *inblock,
+                         uint8_t *outblock) {
+    // Lyra2 always duplexes single blocks of SPONGE_RATE_SIZE_BYTES bytes,
+    // and doesn't pad them.
+    const __m128i *inblock128 = (const __m128i *) inblock;
+    for (unsigned int i = 0; i < SPONGE_RATE_LENGTH_I128; i++) {
+        sponge->state[i] ^= inblock128[i];
+    }
+
+    sponge_compress(sponge, true);
+
+    __m128i *outblock128 = (__m128i *) outblock;
+    for (unsigned int i = 0; i < SPONGE_RATE_LENGTH_I128; i++) {
+        outblock128[i] = sponge->state[i];
+    }
+
+    return;
+}
+
 /**
  * Append 10*1 padding to a chunk of data so its size is a multiple
  * of SPONGE_RATE_SIZE_BYTES.
