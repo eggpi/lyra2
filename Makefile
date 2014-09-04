@@ -2,6 +2,8 @@ CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror
 
 all: lyra2
 
+.PHONY: test
+
 lyra2: main.o sponge.o
 	$(CC) $(CFLAGS) $^ -o $@
 
@@ -9,6 +11,7 @@ lyra2: main.o sponge.o
 	$(CC) $^ $(CFLAGS) -c -o $@
 
 test: test/sponge_test
+	test/sponge_test
 
 test/sponge_test: test/sponge_test.o sponge.o
 	$(CC) $^ -o $@ -lcheck
