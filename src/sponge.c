@@ -24,8 +24,8 @@ struct sponge_s {
   __m128i state[SPONGE_STATE_LENGTH_I128];
 };
 
-static inline void sponge_pad(uint8_t *data, size_t *datalen_bytes);
-static inline void sponge_compress(sponge_t *sponge);
+static inline void sponge_pad(uint8_t *data, size_t *datalen);
+static inline void sponge_compress(sponge_t *sponge, bool reduced);
 
 sponge_t *
 sponge_new(void) {
@@ -43,10 +43,10 @@ sponge_destroy(sponge_t *sponge) {
 }
 
 void
-sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen_bytes) {
-    sponge_pad(data, &datalen_bytes);
+sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen) {
+    sponge_pad(data, &datalen);
     const __m128i *data128 = (const __m128i *) data;
-    size_t datalen128 = datalen_bytes / sizeof(__m128i);
+    size_t datalen128 = datalen / sizeof(__m128i);
 
     assert(datalen128 % SPONGE_RATE_LENGTH_I128 == 0);
     while (datalen128) {
@@ -54,7 +54,7 @@ sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen_bytes) {
             sponge->state[i] ^= data128[i];
         }
 
-        sponge_compress(sponge);
+        sponge_compress(sponge, false);
         data128 += SPONGE_RATE_LENGTH_I128;
         datalen128 -= SPONGE_RATE_LENGTH_I128;
     }
@@ -63,16 +63,16 @@ sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen_bytes) {
 }
 
 void
-sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen_bytes) {
+sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, bool reduced) {
     __m128i *out128 = (__m128i *) out;
-    size_t outlen128 = outlen_bytes / sizeof(__m128i);
+    size_t outlen128 = outlen / sizeof(__m128i);
 
     while (outlen128 > SPONGE_RATE_LENGTH_I128) {
         for (unsigned int i = 0; i < SPONGE_RATE_LENGTH_I128; i++) {
             out128[i] = sponge->state[i];
         }
 
-        sponge_compress(sponge);
+        sponge_compress(sponge, reduced);
         out128 += SPONGE_RATE_LENGTH_I128;
         outlen128 -= SPONGE_RATE_LENGTH_I128;
     }
@@ -108,21 +108,23 @@ sponge_pad(uint8_t *data, size_t *datalen_bytes) {
 }
 
 static inline void
-sponge_compress(sponge_t *sponge) {
+sponge_compress(sponge_t *sponge, bool reduced) {
     __m128i t0, t1, *v = sponge->state;
 
     ROUND(0);
-    ROUND(1);
-    ROUND(2);
-    ROUND(3);
-    ROUND(4);
-    ROUND(5);
-    ROUND(6);
-    ROUND(7);
-    ROUND(8);
-    ROUND(9);
-    ROUND(10);
-    ROUND(11);
+    if (!reduced) {
+        ROUND(1);
+        ROUND(2);
+        ROUND(3);
+        ROUND(4);
+        ROUND(5);
+        ROUND(6);
+        ROUND(7);
+        ROUND(8);
+        ROUND(9);
+        ROUND(10);
+        ROUND(11);
+    }
 
     return;
 }
