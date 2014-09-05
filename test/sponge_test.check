@@ -41,6 +41,8 @@ struct sponge_s {
     return;
 
 #test absorb_block_safe
+    // safe full-round block absortion, done at the beginning of the
+    // setup phase
     uint8_t data[SPONGE_RATE_SIZE_BYTES] = {
         0x4c, 0x79, 0x72, 0x61, 0x20, 0x73, 0x70, 0x6f,
         0x6e, 0x67, 0x65, 0x73, 0x61, 0x6c, 0x74, 0x73,
@@ -79,6 +81,8 @@ struct sponge_s {
     return;
 
 #test absorb_block_extended
+    // full-round absortion with extended rate, done at the end
+    // of the wandering phase
     const uint8_t state[SPONGE_STATE_SIZE_BYTES] = {
         0x67, 0xaf, 0x5b, 0x55, 0x80, 0xd4, 0xce, 0xc7,
         0xd9, 0x16, 0x76, 0x4b, 0xe6, 0x65, 0xbf, 0x6f,
