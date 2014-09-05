@@ -1,15 +1,8 @@
 #include "sponge.h"
 #include "blake2b/blake2b-round.h"
 
-#include <immintrin.h>
 #include <assert.h>
 #include <string.h>
-
-const size_t SPONGE_STATE_LENGTH_I128  = 8; // 8 * 128bits = 1024bits
-const size_t SPONGE_RATE_LENGTH_I128 = SPONGE_STATE_LENGTH_I128 / 2;
-const size_t SPONGE_RATE_SIZE_BYTES = SPONGE_RATE_LENGTH_I128 * sizeof(__m128i);
-
-const size_t SPONGE_EXTENDED_RATE_LENGTH_I128 = 6; // 6 * 128bits = 768bits
 
 static const uint64_t sponge_blake2b_IV[16] = {
     0x0000000000000000ULL, 0x0000000000000000ULL,
