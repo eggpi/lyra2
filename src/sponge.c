@@ -38,27 +38,35 @@ sponge_destroy(sponge_t *sponge) {
 }
 
 void
-sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen) {
-    sponge_pad(data, &datalen);
+sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
+    if (!(flags & SPONGE_FLAG_ASSUME_PADDING)) {
+        sponge_pad(data, &datalen);
+    }
+
+    size_t rate = SPONGE_RATE_LENGTH_I128;
+    if (flags & SPONGE_FLAG_EXTENDED_RATE) {
+        rate = SPONGE_EXTENDED_RATE_LENGTH_I128;
+    }
+
     const __m128i *data128 = (const __m128i *) data;
     size_t datalen128 = datalen / sizeof(__m128i);
 
-    assert(datalen128 % SPONGE_RATE_LENGTH_I128 == 0);
+    assert(datalen128 % rate == 0);
     while (datalen128) {
-        for (unsigned int i = 0; i < SPONGE_RATE_LENGTH_I128; i++) {
+        for (unsigned int i = 0; i < rate; i++) {
             sponge->state[i] ^= data128[i];
         }
 
-        sponge_compress(sponge, false);
-        data128 += SPONGE_RATE_LENGTH_I128;
-        datalen128 -= SPONGE_RATE_LENGTH_I128;
+        sponge_compress(sponge, !!(flags & SPONGE_FLAG_REDUCED));
+        data128 += rate;
+        datalen128 -= rate;
     }
 
     return;
 }
 
 void
-sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, bool reduced) {
+sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
     __m128i *out128 = (__m128i *) out;
     size_t outlen128 = outlen / sizeof(__m128i);
 
@@ -67,7 +75,7 @@ sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, bool reduced) {
             out128[i] = sponge->state[i];
         }
 
-        sponge_compress(sponge, reduced);
+        sponge_compress(sponge, !!(flags & SPONGE_FLAG_REDUCED));
         out128 += SPONGE_EXTENDED_RATE_LENGTH_I128;
         outlen128 -= SPONGE_EXTENDED_RATE_LENGTH_I128;
     }

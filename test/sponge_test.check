@@ -34,7 +34,7 @@ struct sponge_s {
     uint8_t squeezed[sizeof(expected) / sizeof(uint8_t)] = {0};
 
     sponge_t *sponge = sponge_new();
-    sponge_squeeze(sponge, squeezed, sizeof(squeezed), false);
+    sponge_squeeze(sponge, squeezed, sizeof(squeezed), SPONGE_FLAG_EXTENDED_RATE);
 
     ck_assert(!memcmp(squeezed, expected, sizeof(expected) / sizeof(uint8_t)));
     sponge_destroy(sponge);
@@ -72,7 +72,7 @@ struct sponge_s {
     };
 
     sponge_t *sponge = sponge_new();
-    sponge_absorb(sponge, data, 51);
+    sponge_absorb(sponge, data, 51, 0);
 
     ck_assert(!memcmp(sponge->state, expected, SPONGE_STATE_SIZE_BYTES));
     sponge_destroy(sponge);
