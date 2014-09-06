@@ -110,22 +110,22 @@ sponge_reduced_duplexing(sponge_t *sponge, const uint8_t *inblock,
 /**
  * Append 10*1 padding to a chunk of data so its size is a multiple
  * of SPONGE_RATE_SIZE_BYTES.
- * Note: this function assumes there is extra space after |datalen_bytes|
+ * Note: this function assumes there is extra space after |datalen|
  * in |data| to accommodate the padding; it will not allocate extra memory.
  */
 static inline void
-sponge_pad(uint8_t *data, size_t *datalen_bytes) {
-    data[(*datalen_bytes)++] = 0x80;
+sponge_pad(uint8_t *data, size_t *datalen) {
+    data[(*datalen)++] = 0x80;
 
-    size_t mod = *datalen_bytes % SPONGE_RATE_SIZE_BYTES;
+    size_t mod = *datalen % SPONGE_RATE_SIZE_BYTES;
     if (mod) {
         size_t remaining = SPONGE_RATE_SIZE_BYTES - mod;
-        memset(data + *datalen_bytes, 0, remaining);
-        *datalen_bytes += remaining;
+        memset(data + *datalen, 0, remaining);
+        *datalen += remaining;
     }
 
-    data[*datalen_bytes - 1] |= 0x01;
-    assert(*datalen_bytes % SPONGE_RATE_SIZE_BYTES == 0);
+    data[*datalen - 1] |= 0x01;
+    assert(*datalen % SPONGE_RATE_SIZE_BYTES == 0);
 
     return;
 }
