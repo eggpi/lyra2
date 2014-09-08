@@ -4,7 +4,7 @@ all: lyra2
 
 .PHONY: test
 
-lyra2: build/main.o build/sponge.o
+lyra2: build/main.o build/lyra2.o build/sponge.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 build/%.o: src/%.c
