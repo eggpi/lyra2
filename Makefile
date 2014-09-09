@@ -11,17 +11,21 @@ build/%.o: src/%.c
 	mkdir -p build
 	$(CC) $^ $(CFLAGS) -c -o $@
 
-test: test/sponge_test
+test: test/sponge_test test/lyra2_test
 	test/sponge_test
+	test/lyra2_test
 
 test/sponge_test: test/sponge_test.o build/sponge.o
 	$(CC) $^ -o $@ -lcheck
 
-test/sponge_test.o: test/sponge_test.c
+test/lyra2_test: test/lyra2_test.o build/sponge.o build/lyra2.o
+	$(CC) $^ -o $@ -lcheck
+
+test/%.o: test/%.c
 	$(CC) -I./include/ $^ -c -o $@
 
-test/sponge_test.c: test/sponge_test.check
+test/%.c: test/%.check
 	checkmk $^ > $@
 
 clean:
-	rm -rf build/ lyra2 test/*.{c,o} test/sponge_test
+	rm -rf build/ lyra2 test/*.{c,o} test/*_test

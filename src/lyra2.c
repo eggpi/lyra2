@@ -44,6 +44,29 @@ write_basil(uint8_t *buf, unsigned int keylen, const char *pwd,
     return;
 }
 
+/* static inline */ void
+lyra2_setup(void *m, sponge_t *sponge, unsigned int C) {
+    block_t (*matrix)[C] = (block_t (*) [C]) m;
+
+    for (unsigned int col = 0; col < C; col++) {
+        int flags = 0;
+        flags |= SPONGE_FLAG_REDUCED;
+        flags |= SPONGE_FLAG_EXTENDED_RATE;
+        flags |= SPONGE_FLAG_ASSUME_PADDING;
+        sponge_squeeze(sponge, (uint8_t *) &matrix[0][C-1-col], b, flags);
+    }
+
+    for (unsigned int col = 0; col < C; col++) {
+        sponge_reduced_extended_duplexing(sponge,
+            (const uint8_t *) &matrix[0][col],
+            (uint8_t *) &matrix[1][C-1-col]);
+
+        block_xor(matrix[1][C-1-col], matrix[0][col]);
+    }
+
+    return;
+}
+
 int
 lyra2(char *key, unsigned int keylen, const char *pwd, unsigned int pwdlen,
       const char *salt, unsigned int saltlen, unsigned int R, unsigned int C,
@@ -66,21 +89,7 @@ lyra2(char *key, unsigned int keylen, const char *pwd, unsigned int pwdlen,
     write_basil((uint8_t *) matrix, keylen, pwd, pwdlen, salt, saltlen, R, C, T);
     sponge_absorb(sponge, (uint8_t *) matrix, basil_size, 0);
 
-    for (unsigned int col = 0; col < C; col++) {
-        int flags = 0;
-        flags |= SPONGE_FLAG_REDUCED;
-        flags |= SPONGE_FLAG_EXTENDED_RATE;
-        flags |= SPONGE_FLAG_ASSUME_PADDING;
-        sponge_squeeze(sponge, (uint8_t *) &matrix[0][C-1-col], b, flags);
-    }
-
-    for (unsigned int col = 0; col < C; col++) {
-        sponge_reduced_extended_duplexing(sponge,
-            (const uint8_t *) &matrix[0][col],
-            (uint8_t *) &matrix[1][C-1-col]);
-
-        block_xor(matrix[1][C-1-col], matrix[0][col]);
-    }
+    lyra2_setup(matrix, sponge, C);
 
     key++; // avoid warning for now
     free(matrix);
