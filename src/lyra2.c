@@ -7,7 +7,7 @@
 
 static const size_t b = SPONGE_EXTENDED_RATE_SIZE_BYTES;
 static const size_t b128 = SPONGE_EXTENDED_RATE_LENGTH_I128;
-typedef __m128i block_t[b128];
+typedef __m128i block_t[SPONGE_EXTENDED_RATE_LENGTH_I128];
 
 static inline void
 block_xor(block_t bdst, const block_t bsrc) {
