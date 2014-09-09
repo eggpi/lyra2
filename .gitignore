@@ -32,5 +32,5 @@
 test/*.c
 
 # Final compilation results
-test/sponge_test
+test/*_test
 lyra2

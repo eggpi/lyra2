@@ -24,4 +24,4 @@ test/sponge_test.c: test/sponge_test.check
 	checkmk $^ > $@
 
 clean:
-	rm -rf build/ lyra2 test/*.c test/sponge_test
+	rm -rf build/ lyra2 test/*.{c,o} test/sponge_test
