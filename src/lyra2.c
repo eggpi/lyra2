@@ -10,6 +10,13 @@ static const size_t b128 = SPONGE_EXTENDED_RATE_LENGTH_I128;
 typedef __m128i block_t[b128];
 
 static inline void
+block_xor(block_t bdst, const block_t bsrc) {
+    for (unsigned int i = 0; i < sizeof(block_t) / sizeof(bdst[0]); i++) {
+        bdst[i] ^= bsrc[i];
+    }
+}
+
+static inline void
 write_basil(uint8_t *buf, unsigned int keylen, const char *pwd,
             unsigned int pwdlen, const char *salt, unsigned int saltlen,
             unsigned int R, unsigned int C, unsigned int T) {
@@ -53,7 +60,7 @@ lyra2(char *key, unsigned int keylen, const char *pwd, unsigned int pwdlen,
         return -1;
     }
 
-    __m128i (*matrix)[row_length_i128] = malloc(R * sizeof(*matrix));
+    block_t (*matrix)[C] = malloc(R * sizeof(*matrix));
     assert(matrix_size == R * sizeof(*matrix));
 
     write_basil((uint8_t *) matrix, keylen, pwd, pwdlen, salt, saltlen, R, C, T);
@@ -64,17 +71,15 @@ lyra2(char *key, unsigned int keylen, const char *pwd, unsigned int pwdlen,
         flags |= SPONGE_FLAG_REDUCED;
         flags |= SPONGE_FLAG_EXTENDED_RATE;
         flags |= SPONGE_FLAG_ASSUME_PADDING;
-        sponge_squeeze(sponge, (uint8_t *) &matrix[0][(C-1-col)*b128], b, flags);
+        sponge_squeeze(sponge, (uint8_t *) &matrix[0][C-1-col], b, flags);
     }
 
     for (unsigned int col = 0; col < C; col++) {
         sponge_reduced_extended_duplexing(sponge,
-            (const uint8_t *) &matrix[0][col*b128],
-            (uint8_t *) &matrix[1][(C-1-col)*b128]);
+            (const uint8_t *) &matrix[0][col],
+            (uint8_t *) &matrix[1][C-1-col]);
 
-        for (unsigned int i = 0; i < b128; i++) {
-            matrix[1][(C-1-col)*b128+i] ^= matrix[0][col*b128+i];
-        }
+        block_xor(matrix[1][C-1-col], matrix[0][col]);
     }
 
     key++; // avoid warning for now
