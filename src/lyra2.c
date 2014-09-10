@@ -17,9 +17,9 @@ block_xor(block_t bdst, const block_t bsrc) {
 }
 
 static inline void
-write_basil(uint8_t *buf, unsigned int keylen, const char *pwd,
-            unsigned int pwdlen, const char *salt, unsigned int saltlen,
-            unsigned int R, unsigned int C, unsigned int T) {
+write_basil(uint8_t *buf, uint32_t keylen, const char *pwd,
+            uint32_t pwdlen, const char *salt, uint32_t saltlen,
+            uint32_t R, uint32_t C, uint32_t T) {
 #define WRITE_PTR(ptr, size) \
     memcpy(buf, ptr, size);  \
     buf += size;
@@ -45,7 +45,7 @@ write_basil(uint8_t *buf, unsigned int keylen, const char *pwd,
 }
 
 /* static inline */ void
-lyra2_setup(void *m, sponge_t *sponge, unsigned int C) {
+lyra2_setup(void *m, sponge_t *sponge, uint32_t C) {
     block_t (*matrix)[C] = (block_t (*) [C]) m;
 
     for (unsigned int col = 0; col < C; col++) {
@@ -68,9 +68,9 @@ lyra2_setup(void *m, sponge_t *sponge, unsigned int C) {
 }
 
 int
-lyra2(char *key, unsigned int keylen, const char *pwd, unsigned int pwdlen,
-      const char *salt, unsigned int saltlen, unsigned int R, unsigned int C,
-      unsigned int T) {
+lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
+      const char *salt, uint32_t saltlen, uint32_t R, uint32_t C,
+      uint32_t T) {
 
     sponge_t *sponge = sponge_new();
 
