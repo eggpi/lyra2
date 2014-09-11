@@ -9,12 +9,19 @@ static const size_t b = SPONGE_EXTENDED_RATE_SIZE_BYTES;
 static const size_t b128 = SPONGE_EXTENDED_RATE_LENGTH_I128;
 typedef __m128i block_t[SPONGE_EXTENDED_RATE_LENGTH_I128];
 
-static inline void
-block_xor(block_t bdst, const block_t bsrc) {
-    for (unsigned int i = 0; i < sizeof(block_t) / sizeof(bdst[0]); i++) {
-        bdst[i] ^= bsrc[i];
-    }
+#define GEN_BLOCK_OPERATION(name, expr)                                     \
+static inline void                                                          \
+block_##name(block_t bdst, const block_t bsrc1, const block_t bsrc2) {      \
+    const size_t nwords = sizeof(block_t) / sizeof(bdst[0]);                \
+    for (unsigned int i = 0; i < nwords; i++) {                             \
+        expr;                                                               \
+    }                                                                       \
 }
+
+GEN_BLOCK_OPERATION(xor, bdst[i] = bsrc1[i] ^ bsrc2[i])
+// FIXME should xor_rotw and wordwise_add be based on the word size (64 bits)?
+GEN_BLOCK_OPERATION(xor_rotw, bdst[i] = bsrc1[i] ^ bsrc2[(i+nwords-1) % nwords])
+GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i]);
 
 static inline void
 write_basil(uint8_t *buf, uint32_t keylen, const char *pwd,
@@ -61,8 +68,35 @@ lyra2_setup(void *m, sponge_t *sponge, uint32_t C) {
             (const uint8_t *) &matrix[0][col],
             (uint8_t *) &matrix[1][C-1-col]);
 
-        block_xor(matrix[1][C-1-col], matrix[0][col]);
+        block_xor(matrix[1][C-1-col], matrix[1][C-1-col], matrix[0][col]);
     }
+
+    return;
+}
+
+/* static inline */ void
+lyra2_filling_loop(void *m, sponge_t *sponge, uint32_t R, uint32_t C) {
+    block_t (*matrix)[C] = (block_t (*) [C]) m;
+    unsigned int rrow = 0, prev = 1, row = 2, gap = 1, stp = 1, wnd = 2;
+
+    do {
+        for (unsigned int col = 0; col < C; col++) {
+            block_t rand;
+            block_wordwise_add(rand, matrix[prev][col], matrix[rrow][col]);
+            sponge_reduced_extended_duplexing(sponge, (uint8_t *) rand,
+                                              (uint8_t *) rand);
+            block_xor(matrix[row][C-1-col], matrix[prev][col], rand);
+            block_xor_rotw(matrix[rrow][col], matrix[rrow][col], rand);
+        }
+        rrow = (rrow + stp) % wnd;
+        prev = row;
+        row += 1;
+        if (rrow == 0) {
+            stp = wnd + gap;
+            wnd = 2*wnd;
+            gap = -gap;
+        }
+    } while (row <= R - 1);
 
     return;
 }
@@ -90,6 +124,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     sponge_absorb(sponge, (uint8_t *) matrix, basil_size, 0);
 
     lyra2_setup(matrix, sponge, C);
+    lyra2_filling_loop(matrix, sponge, R, C);
 
     key++; // avoid warning for now
     free(matrix);
