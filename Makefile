@@ -11,14 +11,10 @@ build/%.o: src/%.c
 	mkdir -p build
 	$(CC) $^ $(CFLAGS) -c -o $@
 
-test: test/sponge_test test/lyra2_test
+test: test/sponge_test
 	test/sponge_test
-	test/lyra2_test
 
 test/sponge_test: test/sponge_test.o build/sponge.o
-	$(CC) $^ -o $@ -lcheck
-
-test/lyra2_test: test/lyra2_test.o build/sponge.o build/lyra2.o
 	$(CC) $^ -o $@ -lcheck
 
 test/%.o: test/%.c
