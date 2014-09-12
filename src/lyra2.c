@@ -122,7 +122,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     /* Wandering phase */
     row = 0;
     for (unsigned int tau = 1; tau <= T; tau++) {
-        stp = (tau % 2 == 0) ? -1 : R/2 - 1;
+        stp = (tau % 2 == 0) ? -1 : (int32_t) R/2 - 1;
         do {
             // FIXME is this really what the spec says?
             rrow = *((uint32_t *) block_get_lsw(rand)) % R;
@@ -134,6 +134,15 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
                 block_xor_rotw(matrix[rrow][col], matrix[rrow][col], rand);
             }
             prev = row;
+
+            /*
+             * row being uint64_t causes an implicit conversion of
+             * stp to unsigned; when stp is -1, this is equivalent to
+             *      (row + (uint64_t) (2^64 - 1)) % R
+             * which, for R having no more than 64 bits, is equivalent to
+             *      ((row + 2^64 - 1) % 2^64) % R
+             * which is just (row - 1) % R like we wanted.
+             */
             row = (row + stp) % R;
         } while (row != 0);
     }
