@@ -57,6 +57,14 @@ write_basil(uint8_t *buf, uint32_t keylen, const char *pwd,
     return;
 }
 
+// mod operation that always returns a non-negative value.
+// this is necessary because, when p is negative, the sign
+// of the % operation is implementation-defined.
+static inline
+uint64_t mod(int64_t p, int64_t q) {
+    return (p % q + q) % q;
+}
+
 int
 lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
       const char *salt, uint32_t saltlen, uint32_t R, uint32_t C,
@@ -109,7 +117,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
             block_xor(matrix[row][C-1-col], matrix[prev][col], rand);
             block_xor_rotw(matrix[rrow][col], matrix[rrow][col], rand);
         }
-        rrow = (rrow + stp) % wnd;
+        rrow = mod(rrow + stp, wnd);
         prev = row;
         row += 1;
         if (rrow == 0) {
@@ -135,15 +143,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
             }
             prev = row;
 
-            /*
-             * row being uint64_t causes an implicit conversion of
-             * stp to unsigned; when stp is -1, this is equivalent to
-             *      (row + (uint64_t) (2^64 - 1)) % R
-             * which, for R having no more than 64 bits, is equivalent to
-             *      ((row + 2^64 - 1) % 2^64) % R
-             * which is just (row - 1) % R like we wanted.
-             */
-            row = (row + stp) % R;
+            row = mod(row + stp, R);
         } while (row != 0);
     }
 
