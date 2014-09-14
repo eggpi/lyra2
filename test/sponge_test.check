@@ -5,10 +5,6 @@
 
 #include <check.h>
 
-struct sponge_s {
-    __m128i state[SPONGE_STATE_LENGTH_I128];
-};
-
 #test squeeze_IV
     // the output of the squeeze function on a just-initialized
     // sponge in Lyra2's reference SSE implementation.

@@ -4,8 +4,12 @@ all: lyra2
 
 .PHONY: test
 
-lyra2: build/main.o build/lyra2.o build/sponge.o
+lyra2: build/main.o build/lyra2.o
 	$(CC) $(CFLAGS) $^ -o $@
+
+build/lyra2.o: src/lyra2.c include/sponge.h
+	mkdir -p build
+	$(CC) $< $(CFLAGS) -c -o $@
 
 build/%.o: src/%.c
 	mkdir -p build
@@ -14,7 +18,7 @@ build/%.o: src/%.c
 test: test/sponge_test
 	test/sponge_test
 
-test/sponge_test: test/sponge_test.o build/sponge.o
+test/sponge_test: test/sponge_test.o
 	$(CC) $^ -o $@ -lcheck
 
 test/%.o: test/%.c
