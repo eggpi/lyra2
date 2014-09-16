@@ -1,4 +1,8 @@
-CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror -msse2 -mavx
+CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror -msse2
+
+ifdef AVX
+override CFLAGS += -mavx -DUSE_AVX
+endif
 
 all: lyra2
 
