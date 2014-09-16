@@ -38,15 +38,25 @@ main(void) {
             struct timeval t1;
             gettimeofday(&t0, 0);
 
+#ifdef USE_PHS_INTERFACE
+            PHS(key, sizeof(key), pwd, strlen(pwd), salt, strlen(salt),
+                params[i].R, params[i].T);
+#else
             lyra2(key, sizeof(key), pwd, strlen(pwd), salt, strlen(salt),
                   params[i].R, params[i].C, params[i].T);
+#endif
 
             gettimeofday(&t1, 0);
             results[j] = (t1.tv_sec-t0.tv_sec) * 1000000 + t1.tv_usec-t0.tv_usec;
         }
 
+#ifdef USE_PHS_INTERFACE
+        printf("Parameters: R = %u, C = %u, T = %u\n",
+               params[i].R, PHS_NCOLS, params[i].T);
+#else
         printf("Parameters: R = %u, C = %u, T = %u\n",
                params[i].R, params[i].C, params[i].T);
+#endif
 
         for (unsigned int k = 0; k < sizeof(key); k++) {
             printf("%.2x ", (uint8_t) key[k]);

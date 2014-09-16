@@ -155,3 +155,8 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     sponge_destroy(sponge);
     return 0;
 }
+
+int PHS(void *out, size_t outlen, const void *in, size_t inlen, const void *salt,
+        size_t saltlen, unsigned int t_cost, unsigned int m_cost) {
+    return lyra2(out, outlen, in, inlen, salt, saltlen, m_cost, PHS_NCOLS, t_cost);
+}
