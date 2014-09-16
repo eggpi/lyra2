@@ -1,13 +1,14 @@
 #include "sponge.h"
 #include "lyra2.h"
+#include "static_assert.h"
 
 #include <string.h>
 #include <immintrin.h>
 #include <assert.h>
 
-static const size_t b = SPONGE_EXTENDED_RATE_SIZE_BYTES;
-static const size_t b128 = SPONGE_EXTENDED_RATE_LENGTH_I128;
-typedef __m128i block_t[SPONGE_EXTENDED_RATE_LENGTH_I128];
+typedef __m128i bword_t;
+STATIC_ASSERT(SPONGE_EXTENDED_RATE_SIZE_BYTES % sizeof(bword_t) == 0, L_divides_sponge_extended_rate);
+typedef bword_t block_t[SPONGE_EXTENDED_RATE_SIZE_BYTES / sizeof(bword_t)];
 
 #define GEN_BLOCK_OPERATION(name, expr)                                     \
 static inline void                                                          \
@@ -24,7 +25,7 @@ GEN_BLOCK_OPERATION(xor_rotw, bdst[i] = bsrc1[i] ^ bsrc2[(i+nwords-1) % nwords])
 GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i]);
 
 // FIXME should we be considering a word to be 128 bits here too?
-static inline const __m128i *
+static inline const bword_t *
 block_get_lsw(const block_t block) {
     return &block[0];
 }
@@ -73,8 +74,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     sponge_t *sponge = sponge_new();
 
     size_t basil_size = pwdlen + saltlen + 6 * sizeof(int);
-    size_t row_length_i128 = b128 * C;
-    size_t matrix_size = R * row_length_i128 * sizeof(__m128i);
+    size_t matrix_size = R * C * sizeof(block_t);
     if (matrix_size < basil_size + SPONGE_RATE_SIZE_BYTES) {
         // can't fit the basil inside the matrix for the initial
         // absorb operation
@@ -93,7 +93,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         flags |= SPONGE_FLAG_REDUCED;
         flags |= SPONGE_FLAG_EXTENDED_RATE;
         flags |= SPONGE_FLAG_ASSUME_PADDING;
-        sponge_squeeze(sponge, (uint8_t *) &matrix[0][C-1-col], b, flags);
+        sponge_squeeze(sponge, (uint8_t *) &matrix[0][C-1-col], sizeof(block_t), flags);
     }
 
     for (unsigned int col = 0; col < C; col++) {
