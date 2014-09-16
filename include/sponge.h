@@ -10,7 +10,13 @@
 #include <assert.h>
 #include <string.h>
 
+#ifdef USE_AVX
+typedef __m256i sponge_word_t;
+#define SPONGE_MEM_ALIGNMENT 32
+#else
 typedef __m128i sponge_word_t;
+#define SPONGE_MEM_ALIGNMENT 16
+#endif
 
 #define SPONGE_STATE_SIZE_BYTES ((size_t) 128)
 
@@ -37,6 +43,13 @@ void sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags);
 void sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags);
 void sponge_reduced_extended_duplexing(sponge_t *sponge, const uint8_t inblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES], uint8_t outblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES]);
 
+#if defined(_MSC_VER)
+#define ALIGN(x) __declspec(align(x))
+#else
+#define ALIGN(x) __attribute__ ((__aligned__(x)))
+#endif
+
+ALIGN(SPONGE_MEM_ALIGNMENT)
 static const uint64_t sponge_blake2b_IV[16] = {
     0x0000000000000000ULL, 0x0000000000000000ULL,
     0x0000000000000000ULL, 0x0000000000000000ULL,
@@ -57,7 +70,7 @@ static inline void sponge_compress(sponge_t *sponge, bool reduced);
 
 sponge_t *
 sponge_new(void) {
-    sponge_t *sponge = _mm_malloc(sizeof(sponge_t), 16);
+    sponge_t *sponge = _mm_malloc(sizeof(sponge_t), SPONGE_MEM_ALIGNMENT);
     const size_t step = sizeof(sponge_word_t) / sizeof(uint64_t);
     for (unsigned int i = 0; i < SPONGE_STATE_LENGTH; i++) {
         sponge->state[i] = *((sponge_word_t *) (sponge_blake2b_IV + step*i));

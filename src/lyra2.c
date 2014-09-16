@@ -6,7 +6,7 @@
 #include <immintrin.h>
 #include <assert.h>
 
-typedef __m128i bword_t;
+typedef sponge_word_t bword_t;
 STATIC_ASSERT(SPONGE_EXTENDED_RATE_SIZE_BYTES % sizeof(bword_t) == 0, L_divides_sponge_extended_rate);
 typedef bword_t block_t[SPONGE_EXTENDED_RATE_SIZE_BYTES / sizeof(bword_t)];
 

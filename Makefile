@@ -1,4 +1,4 @@
-CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror -msse2
+CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror -msse2 -mavx
 
 all: lyra2
 
@@ -22,7 +22,7 @@ test/sponge_test: test/sponge_test.o
 	$(CC) $^ -o $@ -lcheck
 
 test/%.o: test/%.c
-	$(CC) -I./include/ $^ -c -o $@
+	$(CC) $(CFLAGS) -g -I./include/ $^ -c -o $@
 
 test/%.c: test/%.check
 	checkmk $^ > $@
