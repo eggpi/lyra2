@@ -148,7 +148,6 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
                 block_xor_rotL(matrix[rrow][col], matrix[rrow][col], rand);
             }
             prev = row;
-
             row = mod(row + stp, R);
         } while (row != 0);
     }
