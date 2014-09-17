@@ -6,28 +6,35 @@
 #include <immintrin.h>
 #include <assert.h>
 
+#ifdef __WORDSIZE
+#define W (__WORDSIZE)
+#else
+#define W (sizeof(void *) * CHAR_BIT)
+#endif
+
 typedef sponge_word_t bword_t;
 STATIC_ASSERT(SPONGE_EXTENDED_RATE_SIZE_BYTES % sizeof(bword_t) == 0, L_divides_sponge_extended_rate);
-typedef bword_t block_t[SPONGE_EXTENDED_RATE_SIZE_BYTES / sizeof(bword_t)];
+STATIC_ASSERT(sizeof(bword_t) % W, L_is_a_multiple_of_the_word_size);
+#define nbwords (SPONGE_EXTENDED_RATE_SIZE_BYTES / sizeof(bword_t))
+typedef bword_t block_t[nbwords];
 
 #define GEN_BLOCK_OPERATION(name, expr)                                     \
 static inline void                                                          \
 block_##name(block_t bdst, const block_t bsrc1, const block_t bsrc2) {      \
-    const size_t nwords = sizeof(block_t) / sizeof(bdst[0]);                \
-    for (unsigned int i = 0; i < nwords; i++) {                             \
+    for (unsigned int i = 0; i < nbwords; i++) {                            \
         expr;                                                               \
     }                                                                       \
 }
 
 GEN_BLOCK_OPERATION(xor, bdst[i] = bsrc1[i] ^ bsrc2[i])
-// FIXME should xor_rotw and wordwise_add be based on the word size (64 bits)?
-GEN_BLOCK_OPERATION(xor_rotw, bdst[i] = bsrc1[i] ^ bsrc2[(i+nwords-1) % nwords])
+GEN_BLOCK_OPERATION(xor_rotL, bdst[i] = bsrc1[i] ^ bsrc2[(i+nbwords-1) % nbwords])
 GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i]);
 
-// FIXME should we be considering a word to be 128 bits here too?
-static inline const bword_t *
+STATIC_ASSERT((W & (W - 1)) == 0, word_size_is_a_power_of_two); // be safe when doing & (W - 1)
+STATIC_ASSERT(W <= 64, word_is_no_greater_than_64_bits);
+static inline int64_t
 block_get_lsw(const block_t block) {
-    return &block[0];
+    return *((int64_t *) &block[0]) & (W - 1);
 }
 
 static inline void
@@ -115,7 +122,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
             sponge_reduced_extended_duplexing(sponge, (uint8_t *) rand,
                                               (uint8_t *) rand);
             block_xor(matrix[row][C-1-col], matrix[prev][col], rand);
-            block_xor_rotw(matrix[rrow][col], matrix[rrow][col], rand);
+            block_xor_rotL(matrix[rrow][col], matrix[rrow][col], rand);
         }
         rrow = mod(rrow + stp, wnd);
         prev = row;
@@ -132,14 +139,13 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     for (unsigned int tau = 1; tau <= T; tau++) {
         stp = (tau % 2 == 0) ? -1 : (int32_t) R/2 - 1;
         do {
-            // FIXME is this really what the spec says?
-            rrow = *((uint32_t *) block_get_lsw(rand)) % R;
+            rrow = mod(block_get_lsw(rand), R);
             for (unsigned int col = 0; col < C; col++) {
                 block_wordwise_add(rand, matrix[prev][col], matrix[rrow][col]);
                 sponge_reduced_extended_duplexing(sponge,
                     (const uint8_t *) rand, (uint8_t *) rand);
                 block_xor(matrix[row][col], matrix[row][col], rand);
-                block_xor_rotw(matrix[rrow][col], matrix[rrow][col], rand);
+                block_xor_rotL(matrix[rrow][col], matrix[rrow][col], rand);
             }
             prev = row;
 
