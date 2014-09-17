@@ -84,7 +84,7 @@ sponge_destroy(sponge_t *sponge) {
     _mm_free(sponge);
 }
 
-void
+inline void
 sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
     if (!(flags & SPONGE_FLAG_ASSUME_PADDING)) {
         sponge_pad(data, &datalen);
@@ -112,7 +112,7 @@ sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
     return;
 }
 
-void
+inline void
 sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
     sponge_word_t *outw = (sponge_word_t *) out;
     size_t outlenw = outlen / sizeof(sponge_word_t);
@@ -134,7 +134,7 @@ sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
     return;
 }
 
-void
+inline void
 sponge_reduced_extended_duplexing(sponge_t *sponge,
         const uint8_t inblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES],
         uint8_t outblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES]) {
