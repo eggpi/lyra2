@@ -18,23 +18,30 @@ STATIC_ASSERT(sizeof(bword_t) % W, L_is_a_multiple_of_the_word_size);
 #define nbwords (SPONGE_EXTENDED_RATE_SIZE_BYTES / sizeof(bword_t))
 typedef bword_t block_t[nbwords];
 
-#define GEN_BLOCK_OPERATION(name, expr)                                     \
-static inline void                                                          \
-block_##name(block_t bdst, const block_t bsrc1, const block_t bsrc2) {      \
-    for (unsigned int i = 0; i < nbwords; i++) {                            \
-        expr;                                                               \
-    }                                                                       \
+#define GEN_BLOCK_OPERATION(name, expr, ...)                                          \
+static inline void                                                                    \
+block_##name(block_t bdst, const block_t bsrc1, const block_t bsrc2, ##__VA_ARGS__) { \
+    for (unsigned int i = 0; i < nbwords; i++) {                                      \
+        expr;                                                                         \
+    }                                                                                 \
 }
 
 GEN_BLOCK_OPERATION(xor, bdst[i] = bsrc1[i] ^ bsrc2[i])
-GEN_BLOCK_OPERATION(xor_rotL, bdst[i] = bsrc1[i] ^ bsrc2[(i+nbwords-1) % nbwords])
 GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i]);
+GEN_BLOCK_OPERATION(xor_rotL, bdst[i] = bsrc1[i] ^ bsrc2[(i+nbwords-rot) % nbwords], unsigned int rot)
 
 STATIC_ASSERT((W & (W - 1)) == 0, word_size_is_a_power_of_two); // be safe when doing & (W - 1)
 STATIC_ASSERT(W <= 64, word_is_no_greater_than_64_bits);
-static inline int64_t
-block_get_lsw(const block_t block) {
-    return *((int64_t *) &block[0]) & (W - 1);
+
+static inline uint64_t
+block_get_msw_from_bword(const block_t block, unsigned int bwordidx) {
+    unsigned int wordidx = sizeof(bword_t) / sizeof(uint64_t) - 1;
+    return *(((uint64_t *) &block[bwordidx]) + wordidx) % (W - 1);
+}
+
+static inline uint64_t
+block_get_lsw_from_bword(const block_t block, unsigned int bwordidx) {
+    return *((uint64_t *) &block[bwordidx]) % (W - 1);
 }
 
 static inline void
@@ -91,10 +98,15 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     block_t (*matrix)[C] = _mm_malloc(R * sizeof(*matrix), SPONGE_MEM_ALIGNMENT);
     assert(matrix_size == R * sizeof(*matrix));
 
-    /* Setup phase */
+    /* Bootstrapping phase */
+    block_t rand;
+    int64_t gap = 1, stp = 1;
+    uint64_t prev0 = 2, row1 = 1, prev1 = 0, wnd = 2;
+
     write_basil((uint8_t *) matrix, keylen, pwd, pwdlen, salt, saltlen, R, C, T);
     sponge_absorb(sponge, (uint8_t *) matrix, basil_size, 0);
 
+    /* Setup phase */
     for (unsigned int col = 0; col < C; col++) {
         int flags = 0;
         flags |= SPONGE_FLAG_REDUCED;
@@ -111,48 +123,62 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         block_xor(matrix[1][C-1-col], matrix[1][C-1-col], matrix[0][col]);
     }
 
-    /* Filling loop */
-    block_t rand;
-    int64_t gap = 1, stp = 1;
-    uint64_t rrow = 0, prev = 1, row = 2, wnd = 2;
+    for (unsigned int col = 0; col < C; col++) {
+        block_wordwise_add(rand, matrix[0][col], matrix[1][col]);
+        sponge_reduced_extended_duplexing(sponge,
+            (const uint8_t *) rand,
+            (uint8_t *) rand);
+        block_xor(matrix[2][C-1-col], matrix[1][col], rand);
+        block_xor_rotL(matrix[0][col], matrix[0][col], rand, 1);
+    }
 
-    do {
+    /* Filling loop */
+    for (unsigned int row0 = 3; row0 < R; row0++) {
         for (unsigned int col = 0; col < C; col++) {
-            block_wordwise_add(rand, matrix[prev][col], matrix[rrow][col]);
+            block_wordwise_add(rand, matrix[row1][col], matrix[prev0][col]);
+            block_wordwise_add(rand, rand, matrix[prev1][col]);
             sponge_reduced_extended_duplexing(sponge, (uint8_t *) rand,
                                               (uint8_t *) rand);
-            block_xor(matrix[row][C-1-col], matrix[prev][col], rand);
-            block_xor_rotL(matrix[rrow][col], matrix[rrow][col], rand);
+            block_xor(matrix[row0][C-1-col], matrix[prev0][col], rand);
+            block_xor_rotL(matrix[row1][col], matrix[row1][col], rand, 1);
         }
-        rrow = mod(rrow + stp, wnd);
-        prev = row;
-        row += 1;
-        if (rrow == 0) {
+        prev0 = row0;
+        prev1 = row1;
+        row1 = mod(row1 + stp, wnd);
+        if (row1 == 0) {
             stp = wnd + gap;
             wnd = 2*wnd;
             gap = -gap;
         }
-    } while (row <= R - 1);
-
-    /* Wandering phase */
-    row = 0;
-    for (unsigned int tau = 1; tau <= T; tau++) {
-        stp = (tau % 2 == 0) ? -1 : (int32_t) R/2 - 1;
-        do {
-            rrow = mod(block_get_lsw(rand), R);
-            for (unsigned int col = 0; col < C; col++) {
-                block_wordwise_add(rand, matrix[prev][col], matrix[rrow][col]);
-                sponge_reduced_extended_duplexing(sponge,
-                    (const uint8_t *) rand, (uint8_t *) rand);
-                block_xor(matrix[row][col], matrix[row][col], rand);
-                block_xor_rotL(matrix[rrow][col], matrix[rrow][col], rand);
-            }
-            prev = row;
-            row = mod(row + stp, R);
-        } while (row != 0);
     }
 
-    sponge_absorb(sponge, (uint8_t *) matrix[rrow][0], sizeof(block_t),
+    /* Wandering phase */
+    uint64_t col0 = mod(block_get_msw_from_bword(rand, nbwords-1), C),
+             col1 = mod(block_get_msw_from_bword(rand, nbwords-2), C);
+
+    uint64_t row0 = 0; // row1 was declared during bootstrapping
+
+    for (unsigned int tau = 1; tau <= T; tau++) {
+        for (unsigned int i = 0; i < R; i++) {
+             row0 = mod(block_get_lsw_from_bword(rand, 0), R);
+             row1 = mod(block_get_lsw_from_bword(rand, 1), R);
+
+            for (unsigned int col = 0; col < C; col++) {
+                block_wordwise_add(rand, matrix[row0][col], matrix[row1][col]);
+                block_wordwise_add(rand, matrix[prev0][col0], matrix[prev1][col1]);
+                sponge_reduced_extended_duplexing(sponge,
+                    (const uint8_t *) rand, (uint8_t *) rand);
+
+                block_xor_rotL(matrix[row0][col], matrix[row0][col], rand, 0);
+                col0 = mod(block_get_msw_from_bword(rand, nbwords-1), C);
+                block_xor_rotL(matrix[row1][col], matrix[row1][col], rand, 1);
+                col1 = mod(block_get_msw_from_bword(rand, nbwords-1), C);
+            }
+            prev0 = row0;
+        }
+    }
+
+    sponge_absorb(sponge, (uint8_t *) matrix[row0][col0], sizeof(block_t),
         SPONGE_FLAG_ASSUME_PADDING | SPONGE_FLAG_EXTENDED_RATE);
     sponge_squeeze(sponge, (uint8_t *) key, keylen, SPONGE_FLAG_EXTENDED_RATE);
 
