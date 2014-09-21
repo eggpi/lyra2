@@ -88,7 +88,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         return -1;
     }
 
-    block_t (*matrix)[C] = malloc(R * sizeof(*matrix));
+    block_t (*matrix)[C] = _mm_malloc(R * sizeof(*matrix), SPONGE_MEM_ALIGNMENT);
     assert(matrix_size == R * sizeof(*matrix));
 
     /* Setup phase */
@@ -156,7 +156,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         SPONGE_FLAG_ASSUME_PADDING | SPONGE_FLAG_EXTENDED_RATE);
     sponge_squeeze(sponge, (uint8_t *) key, keylen, SPONGE_FLAG_EXTENDED_RATE);
 
-    free(matrix);
+    _mm_free(matrix);
     sponge_destroy(sponge);
     return 0;
 }
