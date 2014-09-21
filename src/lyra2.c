@@ -73,14 +73,6 @@ write_basil(uint8_t *buf, uint32_t keylen, const char *pwd,
     return;
 }
 
-// mod operation that always returns a non-negative value.
-// this is necessary because, when p is negative, the sign
-// of the % operation is implementation-defined.
-static inline
-uint64_t mod(int64_t p, int64_t q) {
-    return (p % q + q) % q;
-}
-
 int
 lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
       const char *salt, uint32_t saltlen, uint32_t R, uint32_t C,
@@ -145,7 +137,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         }
         prev0 = row0;
         prev1 = row1;
-        row1 = mod(row1 + stp, wnd);
+        row1 = (row1 + stp) & (wnd - 1);
         if (row1 == 0) {
             stp = wnd + gap;
             wnd = 2*wnd;
@@ -154,15 +146,15 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     }
 
     /* Wandering phase */
-    uint64_t col0 = mod(block_get_msw_from_bword(rand, nbwords-1), C),
-             col1 = mod(block_get_msw_from_bword(rand, nbwords-2), C);
+    uint64_t col0 = block_get_msw_from_bword(rand, nbwords-1) % C,
+             col1 = block_get_msw_from_bword(rand, nbwords-2) % C;
 
     uint64_t row0 = 0; // row1 was declared during bootstrapping
 
     for (unsigned int tau = 1; tau <= T; tau++) {
         for (unsigned int i = 0; i < R; i++) {
-             row0 = mod(block_get_lsw_from_bword(rand, 0), R);
-             row1 = mod(block_get_lsw_from_bword(rand, 1), R);
+             row0 = block_get_lsw_from_bword(rand, 0) % R;
+             row1 = block_get_lsw_from_bword(rand, 1) % R;
 
             for (unsigned int col = 0; col < C; col++) {
                 block_wordwise_add(rand, matrix[row0][col], matrix[row1][col]);
@@ -171,9 +163,9 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
                     (const uint8_t *) rand, (uint8_t *) rand);
 
                 block_xor_rotL(matrix[row0][col], matrix[row0][col], rand, 0);
-                col0 = mod(block_get_msw_from_bword(rand, nbwords-1), C);
+                col0 = block_get_msw_from_bword(rand, nbwords-1) % C;
                 block_xor_rotL(matrix[row1][col], matrix[row1][col], rand, 1);
-                col1 = mod(block_get_msw_from_bword(rand, nbwords-1), C);
+                col1 = block_get_msw_from_bword(rand, nbwords-1) % C;
             }
             prev0 = row0;
         }
