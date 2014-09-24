@@ -168,6 +168,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
                 col1 = block_get_msw_from_bword(rand, nbwords-2) % C;
             }
             prev0 = row0;
+            prev1 = row1;
         }
     }
 
