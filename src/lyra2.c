@@ -165,7 +165,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
                 block_xor_rotL(matrix[row0][col], matrix[row0][col], rand, 0);
                 col0 = block_get_msw_from_bword(rand, nbwords-1) % C;
                 block_xor_rotL(matrix[row1][col], matrix[row1][col], rand, 1);
-                col1 = block_get_msw_from_bword(rand, nbwords-1) % C;
+                col1 = block_get_msw_from_bword(rand, nbwords-2) % C;
             }
             prev0 = row0;
         }
