@@ -37,11 +37,11 @@ STATIC_ASSERT(SPONGE_EXTENDED_RATE_SIZE_BYTES % sizeof(sponge_word_t) == 0, spon
 
 typedef struct sponge_s sponge_t;
 
-sponge_t *sponge_new(void);
-void sponge_destroy(sponge_t *sponge);
-void sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags);
-void sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags);
-void sponge_reduced_extended_duplexing(sponge_t *sponge, const uint8_t inblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES], uint8_t outblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES]);
+static sponge_t *sponge_new(void);
+static void sponge_destroy(sponge_t *sponge);
+static void sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags);
+static void sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags);
+static void sponge_reduced_extended_duplexing(sponge_t *sponge, const uint8_t inblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES], uint8_t outblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES]);
 
 #if defined(_MSC_VER)
 #define ALIGN(x) __declspec(align(x))
@@ -68,7 +68,7 @@ struct sponge_s {
 static inline void sponge_pad(uint8_t *data, size_t *datalen);
 static inline void sponge_compress(sponge_t *sponge, bool reduced);
 
-sponge_t *
+static sponge_t *
 sponge_new(void) {
     sponge_t *sponge = _mm_malloc(sizeof(sponge_t), SPONGE_MEM_ALIGNMENT);
     const size_t step = sizeof(sponge_word_t) / sizeof(uint64_t);
@@ -79,12 +79,12 @@ sponge_new(void) {
     return sponge;
 }
 
-void
+static void
 sponge_destroy(sponge_t *sponge) {
     _mm_free(sponge);
 }
 
-inline void
+static inline void
 sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
     if (!(flags & SPONGE_FLAG_ASSUME_PADDING)) {
         sponge_pad(data, &datalen);
@@ -112,7 +112,7 @@ sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
     return;
 }
 
-inline void
+static inline void
 sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
     sponge_word_t *outw = (sponge_word_t *) out;
     size_t outlenw = outlen / sizeof(sponge_word_t);
@@ -134,7 +134,7 @@ sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
     return;
 }
 
-inline void
+static inline void
 sponge_reduced_extended_duplexing(sponge_t *sponge,
         const uint8_t inblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES],
         uint8_t outblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES]) {
