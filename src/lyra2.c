@@ -27,7 +27,7 @@ block_##name(block_t bdst, const block_t bsrc1, const block_t bsrc2, ##__VA_ARGS
 }
 
 GEN_BLOCK_OPERATION(xor, bdst[i] = bsrc1[i] ^ bsrc2[i])
-GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i]);
+GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i])
 GEN_BLOCK_OPERATION(xor_rotL, bdst[i] = bsrc1[i] ^ bsrc2[(i+nbwords-rot) % nbwords], unsigned int rot)
 
 STATIC_ASSERT((W & (W - 1)) == 0, word_size_is_a_power_of_two); // be safe when doing & (W - 1)
