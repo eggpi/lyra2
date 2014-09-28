@@ -94,7 +94,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     /* Bootstrapping phase */
     block_t rand;
     int64_t gap = 1, stp = 1;
-    uint64_t prev0 = 2, row1 = 1, prev1 = 0, wnd = 2;
+    uint64_t prev0 = 2, row0 = 0, row1 = 1, prev1 = 0, wnd = 2;
 
     write_basil((uint8_t *) matrix, keylen, pwd, pwdlen, salt, saltlen, R, C, T);
     sponge_absorb(sponge, (uint8_t *) matrix, basil_size, 0);
@@ -126,7 +126,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     }
 
     /* Filling loop */
-    for (unsigned int row0 = 3; row0 < R; row0++) {
+    for (row0 = 3; row0 < R; row0++) {
         for (unsigned int col = 0; col < C; col++) {
             block_wordwise_add(rand, matrix[row1][col], matrix[prev0][col]);
             block_wordwise_add(rand, rand, matrix[prev1][col]);
@@ -148,8 +148,6 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     /* Wandering phase */
     uint64_t col0 = block_get_msw_from_bword(rand, nbwords-1) % C,
              col1 = block_get_msw_from_bword(rand, nbwords-2) % C;
-
-    uint64_t row0 = 0; // row1 was declared during bootstrapping
 
     for (unsigned int tau = 1; tau <= T; tau++) {
         for (unsigned int i = 0; i < R; i++) {
