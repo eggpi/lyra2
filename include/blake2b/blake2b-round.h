@@ -14,6 +14,9 @@
 #ifndef __BLAKE2B_ROUND_H__
 #define __BLAKE2B_ROUND_H__
 
+#include <immintrin.h>
+#include "blake2b/blake2-config.h"
+
 #define LOAD(p)  _mm_load_si128( (const __m128i *)(p) )
 #define STORE(p,r) _mm_store_si128((__m128i *)(p), r)
 
@@ -29,6 +32,8 @@
 /* Microarchitecture-specific macros */
 #ifndef HAVE_XOP
 #ifdef HAVE_SSSE3
+#define r16 _mm_setr_epi8( 2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9 )
+#define r24 _mm_setr_epi8( 3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10 )
 #define _mm_roti_epi64(x, c) \
     (-(c) == 32) ? _mm_shuffle_epi32((x), _MM_SHUFFLE(2,3,0,1))  \
     : (-(c) == 24) ? _mm_shuffle_epi8((x), r24) \
