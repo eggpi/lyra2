@@ -85,7 +85,7 @@
   row3 = _mm256_roti_epi64(row3, -128);       \
   row4 = _mm256_roti_epi64(row4, -192);       \
 
-#define ROUND(r)                         \
+#define BLAKE2B_ROUND(v)                 \
   G1(v[0], v[1], v[2], v[3]);            \
   G2(v[0], v[1], v[2], v[3]);            \
   DIAGONALIZE(v[0], v[1], v[2], v[3]);   \
@@ -134,9 +134,9 @@
   row2h = _mm_roti_epi64(row2h, -63); \
  
 #if defined(HAVE_SSSE3)
-#define DIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) \
-  t0 = _mm_alignr_epi8(row2h, row2l, 8); \
-  t1 = _mm_alignr_epi8(row2l, row2h, 8); \
+#define DIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) { \
+  __m128i t0 = _mm_alignr_epi8(row2h, row2l, 8); \
+  __m128i t1 = _mm_alignr_epi8(row2l, row2h, 8); \
   row2l = t0; \
   row2h = t1; \
   \
@@ -147,11 +147,12 @@
   t0 = _mm_alignr_epi8(row4h, row4l, 8); \
   t1 = _mm_alignr_epi8(row4l, row4h, 8); \
   row4l = t1; \
-  row4h = t0;
+  row4h = t0; \
+}
 
-#define UNDIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) \
-  t0 = _mm_alignr_epi8(row2l, row2h, 8); \
-  t1 = _mm_alignr_epi8(row2h, row2l, 8); \
+#define UNDIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) { \
+  __m128i t0 = _mm_alignr_epi8(row2l, row2h, 8); \
+  __m128i t1 = _mm_alignr_epi8(row2h, row2l, 8); \
   row2l = t0; \
   row2h = t1; \
   \
@@ -162,7 +163,9 @@
   t0 = _mm_alignr_epi8(row4l, row4h, 8); \
   t1 = _mm_alignr_epi8(row4h, row4l, 8); \
   row4l = t1; \
-  row4h = t0;
+  row4h = t0; \
+}
+
 #else
 
 #define DIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) \
@@ -189,7 +192,7 @@
 
 #endif // HAVE_SSSE3
 
-#define ROUND(r) \
+#define BLAKE2B_ROUND(v) \
   G1(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]); \
   G2(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]); \
   DIAGONALIZE(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]); \

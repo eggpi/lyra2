@@ -180,24 +180,19 @@ sponge_pad(uint8_t *data, size_t *datalen) {
 
 static inline void
 sponge_compress(sponge_t *sponge, bool reduced) {
-    sponge_word_t *v = (sponge_word_t *) sponge->state;
-#ifndef USE_AVX
-    __m128i t0, t1;
-#endif
-
-    ROUND(0);
+    BLAKE2B_ROUND(sponge->state)
     if (!reduced) {
-        ROUND(1);
-        ROUND(2);
-        ROUND(3);
-        ROUND(4);
-        ROUND(5);
-        ROUND(6);
-        ROUND(7);
-        ROUND(8);
-        ROUND(9);
-        ROUND(10);
-        ROUND(11);
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
+        BLAKE2B_ROUND(sponge->state)
     }
 
     return;
