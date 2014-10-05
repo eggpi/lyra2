@@ -30,24 +30,70 @@
 
 
 /* Microarchitecture-specific macros */
-#ifndef HAVE_XOP
-#ifdef HAVE_SSSE3
-#define r16 _mm_setr_epi8( 2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9 )
-#define r24 _mm_setr_epi8( 3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10 )
-#define _mm_roti_epi64(x, c) \
-    (-(c) == 32) ? _mm_shuffle_epi32((x), _MM_SHUFFLE(2,3,0,1))  \
-    : (-(c) == 24) ? _mm_shuffle_epi8((x), r24) \
-    : (-(c) == 16) ? _mm_shuffle_epi8((x), r16) \
-    : (-(c) == 63) ? _mm_xor_si128(_mm_srli_epi64((x), -(c)), _mm_add_epi64((x), (x)))  \
-    : _mm_xor_si128(_mm_srli_epi64((x), -(c)), _mm_slli_epi64((x), 64-(-(c))))
+#ifdef HAVE_AVX
+#define r16_256 _mm256_setr_epi8( 2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9, 18, 19, 20, 21, 22, 23, 16, 17, 26, 27, 28, 29, 30, 31, 24, 25 )
+#define r24_256 _mm256_setr_epi8( 3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10, 19, 20, 21, 22, 23, 16, 17, 18, 27, 28, 29, 30, 31, 24, 25, 26 )
+#define _mm256_roti_epi64(x, c) \
+    (-(c) == 32) ? _mm256_shuffle_epi32((x), _MM_SHUFFLE(2,3,0,1))  \
+    : (-(c) == 24) ? _mm256_shuffle_epi8((x), r24_256) \
+    : (-(c) == 16) ? _mm256_shuffle_epi8((x), r16_256) \
+    : (-(c) == 63) ? _mm256_xor_si256(_mm256_srli_epi64((x), -(c)), _mm256_add_epi64((x), (x)))  \
+    : _mm256_xor_si256(_mm256_srli_epi64((x), -(c)), _mm256_slli_epi64((x), 64-(-(c))))
 #else
-#define _mm_roti_epi64(r, c) _mm_xor_si128(_mm_srli_epi64( (r), -(c) ),_mm_slli_epi64( (r), 64-(-c) ))
-#endif
-#else
+#  ifndef HAVE_XOP
+#    ifdef HAVE_SSSE3
+#      define r16 _mm_setr_epi8( 2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9 )
+#      define r24 _mm_setr_epi8( 3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10 )
+#      define _mm_roti_epi64(x, c) \
+          (-(c) == 32) ? _mm_shuffle_epi32((x), _MM_SHUFFLE(2,3,0,1))  \
+          : (-(c) == 24) ? _mm_shuffle_epi8((x), r24) \
+          : (-(c) == 16) ? _mm_shuffle_epi8((x), r16) \
+          : (-(c) == 63) ? _mm_xor_si128(_mm_srli_epi64((x), -(c)), _mm_add_epi64((x), (x)))  \
+          : _mm_xor_si128(_mm_srli_epi64((x), -(c)), _mm_slli_epi64((x), 64-(-(c))))
+#    else
+#      define _mm_roti_epi64(r, c) _mm_xor_si128(_mm_srli_epi64( (r), -(c) ),_mm_slli_epi64( (r), 64-(-c) ))
+#    endif
+#  else
 /* ... */
+#  endif
 #endif
 
+#ifdef HAVE_AVX
+#define G1(row1,row2,row3,row4)        \
+  row1 = _mm256_add_epi64(row1, row2); \
+  row4 = _mm256_xor_si256(row4, row1); \
+  row4 = _mm256_roti_epi64(row4, -32); \
+  row3 = _mm256_add_epi64(row3, row4); \
+  row2 = _mm256_xor_si256(row2, row3); \
+  row2 = _mm256_roti_epi64(row2, -24); \
 
+#define G2(row1,row2,row3,row4)        \
+  row1 = _mm256_add_epi64(row1, row2); \
+  row4 = _mm256_xor_si256(row4, row1); \
+  row4 = _mm256_roti_epi64(row4, -16); \
+  row3 = _mm256_add_epi64(row3, row4); \
+  row2 = _mm256_xor_si256(row2, row3); \
+  row2 = _mm256_roti_epi64(row2, -63); \
+
+#define DIAGONALIZE(row1, row2, row3, row4) \
+  row2 = _mm256_roti_epi64(row2, -192);     \
+  row3 = _mm256_roti_epi64(row3, -128);     \
+  row4 = _mm256_roti_epi64(row4, -64);      \
+
+#define UNDIAGONALIZE(row1, row2, row3, row4) \
+  row2 = _mm256_roti_epi64(row2, -64);        \
+  row3 = _mm256_roti_epi64(row3, -128);       \
+  row4 = _mm256_roti_epi64(row4, -192);       \
+
+#define ROUND(r)                         \
+  G1(v[0], v[1], v[2], v[3]);            \
+  G2(v[0], v[1], v[2], v[3]);            \
+  DIAGONALIZE(v[0], v[1], v[2], v[3]);   \
+  G1(v[0], v[1], v[2], v[3]);            \
+  G2(v[0], v[1], v[2], v[3]);            \
+  UNDIAGONALIZE(v[0], v[1], v[2], v[3]); \
+
+#else
 
 #define G1(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) \
   row1l = _mm_add_epi64(row1l, row2l); \
@@ -141,7 +187,7 @@
   row4l = _mm_unpackhi_epi64(row4l, _mm_unpacklo_epi64(row4h, row4h)); \
   row4h = _mm_unpackhi_epi64(row4h, _mm_unpacklo_epi64(t1, t1))
 
-#endif
+#endif // HAVE_SSSE3
 
 #define ROUND(r) \
   G1(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]); \
@@ -151,5 +197,5 @@
   G2(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]); \
   UNDIAGONALIZE(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]);
 
+#endif // HAVE_AVX
 #endif
-

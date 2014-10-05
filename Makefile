@@ -1,7 +1,7 @@
 CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror -msse2
 
 ifdef AVX
-override CFLAGS += -mavx -DUSE_AVX
+override CFLAGS += -mavx2 -DUSE_AVX
 ifdef OSX_GCC
 override CFLAGS += -Wa,-q
 endif
