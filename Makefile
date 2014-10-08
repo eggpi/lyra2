@@ -1,4 +1,4 @@
-CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror -msse2
+CFLAGS=-I./include/ -O3 -g -std=c99 -Wall -Wextra -Werror -msse2 -Wundef
 
 ifdef AVX
 override CFLAGS += -mavx2 -DUSE_AVX
