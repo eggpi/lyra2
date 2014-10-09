@@ -156,7 +156,8 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
 
             for (unsigned int col = 0; col < C; col++) {
                 block_wordwise_add(rand, matrix[row0][col], matrix[row1][col]);
-                block_wordwise_add(rand, matrix[prev0][col0], matrix[prev1][col1]);
+                block_wordwise_add(rand, rand, matrix[prev0][col0]);
+                block_wordwise_add(rand, rand, matrix[prev1][col1]);
                 sponge_reduced_extended_duplexing(sponge,
                     (const uint8_t *) rand, (uint8_t *) rand);
 
