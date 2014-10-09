@@ -151,8 +151,8 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
 
     for (unsigned int tau = 1; tau <= T; tau++) {
         for (unsigned int i = 0; i < R; i++) {
-             row0 = block_get_lsw_from_bword(rand, 0) % R;
-             row1 = block_get_lsw_from_bword(rand, 1) % R;
+            row0 = block_get_lsw_from_bword(rand, 0) % R;
+            row1 = block_get_lsw_from_bword(rand, 1) % R;
 
             for (unsigned int col = 0; col < C; col++) {
                 block_wordwise_add(rand, matrix[row0][col], matrix[row1][col]);
