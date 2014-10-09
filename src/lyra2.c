@@ -11,6 +11,7 @@
 #else
 #define W (sizeof(void *) * CHAR_BIT)
 #endif
+STATIC_ASSERT(W == 64, word_size_is_64bit);
 
 typedef sponge_word_t bword_t;
 STATIC_ASSERT(SPONGE_EXTENDED_RATE_SIZE_BYTES % sizeof(bword_t) == 0, L_divides_sponge_extended_rate);
@@ -30,19 +31,15 @@ GEN_BLOCK_OPERATION(xor, bdst[i] = bsrc1[i] ^ bsrc2[i])
 GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i])
 GEN_BLOCK_OPERATION(xor_rotL, bdst[i] = bsrc1[i] ^ bsrc2[(i+nbwords-rot) % nbwords], unsigned int rot)
 
-STATIC_ASSERT((W & (W - 1)) == 0, word_size_is_a_power_of_two); // be safe when doing & (W - 1)
-STATIC_ASSERT(W <= 64, word_is_no_greater_than_64_bits);
-static const uint64_t word_mod_mask = ~0 >> (64 - W);
-
 static inline uint64_t
 block_get_msw_from_bword(const block_t block, unsigned int bwordidx) {
     unsigned int wordidx = sizeof(bword_t) / sizeof(uint64_t) - 1;
-    return *(((uint64_t *) &block[bwordidx]) + wordidx) & word_mod_mask;
+    return *(((uint64_t *) &block[bwordidx]) + wordidx);
 }
 
 static inline uint64_t
 block_get_lsw_from_bword(const block_t block, unsigned int bwordidx) {
-    return *((uint64_t *) &block[bwordidx]) & word_mod_mask;
+    return *((uint64_t *) &block[bwordidx]);
 }
 
 static inline void
