@@ -47,7 +47,7 @@ main(void) {
 #endif
 
             gettimeofday(&t1, 0);
-            results[j] = (t1.tv_sec-t0.tv_sec) * 1000000 + t1.tv_usec-t0.tv_usec;
+            results[j] = (t1.tv_sec - t0.tv_sec) * 1000000 + t1.tv_usec - t0.tv_usec;
         }
 
 #ifdef USE_PHS_INTERFACE
