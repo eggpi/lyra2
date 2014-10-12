@@ -29,13 +29,7 @@ block_##name(block_t bdst, const block_t bsrc1, const block_t bsrc2, ##__VA_ARGS
 
 GEN_BLOCK_OPERATION(xor, bdst[i] = bsrc1[i] ^ bsrc2[i])
 GEN_BLOCK_OPERATION(wordwise_add, bdst[i] = bsrc1[i] + bsrc2[i])
-GEN_BLOCK_OPERATION(xor_rotL, bdst[i] = bsrc1[i] ^ bsrc2[(i+nbwords-rot) % nbwords], unsigned int rot)
-
-static inline uint64_t
-block_get_msw_from_bword(const block_t block, unsigned int bwordidx) {
-    unsigned int wordidx = sizeof(bword_t) / sizeof(uint64_t) - 1;
-    return *(((uint64_t *) &block[bwordidx]) + wordidx);
-}
+GEN_BLOCK_OPERATION(xor_rotR, bdst[i] = bsrc1[i] ^ bsrc2[(i+rot) % nbwords], unsigned int rot)
 
 static inline uint64_t
 block_get_lsw_from_bword(const block_t block, unsigned int bwordidx) {
@@ -119,7 +113,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
             (const uint8_t *) rand,
             (uint8_t *) rand);
         block_xor(matrix[2][C-1-col], matrix[1][col], rand);
-        block_xor_rotL(matrix[0][col], matrix[0][col], rand, 1);
+        block_xor_rotR(matrix[0][col], matrix[0][col], rand, 1);
     }
 
     /* Filling loop */
@@ -130,7 +124,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
             sponge_reduced_extended_duplexing(sponge, (uint8_t *) rand,
                                               (uint8_t *) rand);
             block_xor(matrix[row0][C-1-col], matrix[prev0][col], rand);
-            block_xor_rotL(matrix[row1][col], matrix[row1][col], rand, 1);
+            block_xor_rotR(matrix[row1][col], matrix[row1][col], rand, 1);
         }
         prev0 = row0;
         prev1 = row1;
@@ -146,12 +140,12 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     uint64_t col0, col1;
     for (unsigned int tau = 1; tau <= T; tau++) {
         for (unsigned int i = 0; i < R; i++) {
-            for (unsigned int col = 0; col < C; col++) {
-                row0 = block_get_lsw_from_bword(rand, 0) % R;
-                row1 = block_get_lsw_from_bword(rand, 1) % R;
+            row0 = block_get_lsw_from_bword(rand, 0) % R;
+            row1 = block_get_lsw_from_bword(rand, 1) % R;
 
-                col0 = block_get_msw_from_bword(rand, nbwords-1) % C,
-                col1 = block_get_msw_from_bword(rand, nbwords-2) % C;
+            for (unsigned int col = 0; col < C; col++) {
+                col0 = block_get_lsw_from_bword(rand, 2) % C,
+                col1 = block_get_lsw_from_bword(rand, 3) % C;
 
                 block_wordwise_add(rand, matrix[row0][col], matrix[row1][col]);
                 block_wordwise_add(rand, rand, matrix[prev0][col0]);
@@ -159,8 +153,8 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
                 sponge_reduced_extended_duplexing(sponge,
                     (const uint8_t *) rand, (uint8_t *) rand);
 
-                block_xor_rotL(matrix[row0][col], matrix[row0][col], rand, 0);
-                block_xor_rotL(matrix[row1][col], matrix[row1][col], rand, 1);
+                block_xor_rotR(matrix[row0][col], matrix[row0][col], rand, 0);
+                block_xor_rotR(matrix[row1][col], matrix[row1][col], rand, 1);
             }
             prev0 = row0;
             prev1 = row1;
