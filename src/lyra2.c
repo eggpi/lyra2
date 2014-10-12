@@ -137,7 +137,7 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     }
 
     /* Wandering phase */
-    uint64_t col0, col1;
+    uint64_t col0 = 0, col1 = 0;
     for (unsigned int tau = 1; tau <= T; tau++) {
         for (unsigned int i = 0; i < R; i++) {
             row0 = block_get_lsw_from_bword(rand, 0) % R;
