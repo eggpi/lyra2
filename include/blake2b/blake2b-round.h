@@ -168,27 +168,29 @@
 
 #else
 
-#define DIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) \
-  t0 = row4l;\
-  t1 = row2l;\
+#define DIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) { \
+  __m128i t0 = row4l;\
+  __m128i t1 = row2l;\
   row4l = row3l;\
   row3l = row3h;\
   row3h = row4l;\
   row4l = _mm_unpackhi_epi64(row4h, _mm_unpacklo_epi64(t0, t0)); \
   row4h = _mm_unpackhi_epi64(t0, _mm_unpacklo_epi64(row4h, row4h)); \
   row2l = _mm_unpackhi_epi64(row2l, _mm_unpacklo_epi64(row2h, row2h)); \
-  row2h = _mm_unpackhi_epi64(row2h, _mm_unpacklo_epi64(t1, t1))
+  row2h = _mm_unpackhi_epi64(row2h, _mm_unpacklo_epi64(t1, t1)); \
+}
 
-#define UNDIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) \
-  t0 = row3l;\
+#define UNDIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) { \
+  __m128i t0 = row3l;\
   row3l = row3h;\
   row3h = t0;\
   t0 = row2l;\
-  t1 = row4l;\
+  __m128i t1 = row4l;\
   row2l = _mm_unpackhi_epi64(row2h, _mm_unpacklo_epi64(row2l, row2l)); \
   row2h = _mm_unpackhi_epi64(t0, _mm_unpacklo_epi64(row2h, row2h)); \
   row4l = _mm_unpackhi_epi64(row4l, _mm_unpacklo_epi64(row4h, row4h)); \
-  row4h = _mm_unpackhi_epi64(row4h, _mm_unpacklo_epi64(t1, t1))
+  row4h = _mm_unpackhi_epi64(row4h, _mm_unpacklo_epi64(t1, t1)); \
+}
 
 #endif // HAVE_SSSE3
 
