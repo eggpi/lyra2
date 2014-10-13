@@ -332,12 +332,13 @@ inline void reducedDuplexRowFilling(__m128i *state, __m128i *rowInOut, __m128i *
  * @param rowIn1         Another row used only as input
  *
  */
-inline void reducedDuplexRowWandering(__m128i *state, __m128i *rowInOut0, __m128i *rowInOut1, __m128i *rowIn0, __m128i *rowIn1) {
+inline unsigned int reducedDuplexRowWandering(__m128i *state, __m128i *rowInOut0, __m128i *rowInOut1, __m128i *rowIn0, __m128i *rowIn1) {
     __m128i* ptrWordInOut0 = rowInOut0; //In Lyra2: pointer to row0
     __m128i* ptrWordInOut1 = rowInOut1; //In Lyra2: pointer to row1
     __m128i* ptrWordIn0;                //In Lyra2: pointer to prev0
     __m128i* ptrWordIn1;                //In Lyra2: pointer to prev1
     uint64_t randomColumn;
+    unsigned int col = 0;
     
     int i, j;
     
@@ -349,6 +350,7 @@ inline void reducedDuplexRowWandering(__m128i *state, __m128i *rowInOut0, __m128
         //col_0 = LSW(rotRt^2(rand)) mod N_COLS
         //randomColumn = (((uint64_t)((__uint128_t *)stateLocal)[2]) & (N_COLS-1))*BLOCK_LEN_INT128;          /*(USE THIS IF N_COLS IS A POWER OF 2)*/
         randomColumn =  (((uint64_t)((__uint128_t *)stateLocal)[2]) % N_COLS)*BLOCK_LEN_INT128;               /*(USE THIS FOR THE "GENERIC" CASE)*/
+        col = randomColumn / BLOCK_LEN_INT128;
         ptrWordIn0 = rowIn0 + randomColumn; 
         
         //col_1 = LSW(rotRt^3(rand)) mod N_COLS
@@ -387,6 +389,7 @@ inline void reducedDuplexRowWandering(__m128i *state, __m128i *rowInOut0, __m128
     state[5] = stateLocal[5];
     state[6] = stateLocal[6];
     state[7] = stateLocal[7];
+    return col;
 }
 
 /**
@@ -463,10 +466,10 @@ inline void reducedDuplexRowWanderingParallel(__m128i *state, __m128i *rowInOut0
  * @param state The current state of the sponge 
  * @param in    The row whose column (BLOCK_LEN_INT128 words) should be absorbed 
  */
-inline void absorbRandomColumn(__m128i *state, __m128i *in) {
+inline void absorbRandomColumn(__m128i *state, __m128i *in, unsigned int col) {
     //picks a pseudorandom column from "in"
     //__m128i* ptrWordIn = in + (((uint64_t)((__uint128_t *)state)[5]) & (N_COLS-1))*BLOCK_LEN_INT128;        /*(USE THIS IF N_COLS IS A POWER OF 2)*/
-    __m128i* ptrWordIn = in + (((uint64_t)((__uint128_t *)state)[5]) % N_COLS)*BLOCK_LEN_INT128;              /*(USE THIS FOR THE "GENERIC" CASE)*/
+    __m128i* ptrWordIn = in + col*BLOCK_LEN_INT128;              /*(USE THIS FOR THE "GENERIC" CASE)*/
     
     int i;
     

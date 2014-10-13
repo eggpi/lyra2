@@ -123,14 +123,14 @@ void squeeze(__m128i *state, unsigned char *out, unsigned int len);
 void reducedSqueezeRow0(__m128i* state, __m128i* row);
 
 //---- Absorbs
-void absorbRandomColumn(__m128i *state, __m128i *in);
+void absorbRandomColumn(__m128i *state, __m128i *in, unsigned int col);
 void absorbBlockBlake2Safe(__m128i *state, const __m128i *in);
 
 //---- Duplexes
 void reducedDuplexRow1(__m128i *state, __m128i *rowIn, __m128i *rowOut);
 void reducedDuplexRow2(__m128i *state, __m128i *rowIn, __m128i *rowInOut, __m128i *rowOut);
 void reducedDuplexRowFilling(__m128i *state, __m128i *rowInOut, __m128i *rowIn0, __m128i *rowIn1, __m128i *rowOut);
-void reducedDuplexRowWandering(__m128i *state, __m128i *rowInOut0, __m128i *rowInOut1, __m128i *rowIn0, __m128i *rowIn1);
+unsigned int reducedDuplexRowWandering(__m128i *state, __m128i *rowInOut0, __m128i *rowInOut1, __m128i *rowIn0, __m128i *rowIn1);
 void reducedDuplexRowWanderingParallel(__m128i *state, __m128i *rowInOut0, __m128i *rowInP, __m128i *rowIn0);
 
 //---- Misc

@@ -213,6 +213,7 @@ int LYRA2(void *K, unsigned int kLen, const void *pwd, unsigned int pwdlen, cons
     }
     
     //============================ Wandering Phase =============================//
+    unsigned int randomColumn = 0;
     for (tau = 1; tau <= timeCost; tau++) {
 	for (i = 0 ; i < nRows ; i++) {            
             //Selects a pseudorandom indices row0 and row1
@@ -226,7 +227,7 @@ int LYRA2(void *K, unsigned int kLen, const void *pwd, unsigned int pwdlen, cons
             
 	    //Performs a reduced-round duplexing operation over M[row0] [+] M[row1] [+] M[prev0] [+] M[prev1], updating both M[row0] and M[row1]
             //M[row0][col] = M[row0][col] XOR rand; M[row1][col] = M[row1][col] XOR rotRt(rand)
-	    reducedDuplexRowWandering(state, memMatrix[row0], memMatrix[row1], memMatrix[prev0], memMatrix[prev1]);
+	    randomColumn = reducedDuplexRowWandering(state, memMatrix[row0], memMatrix[row1], memMatrix[prev0], memMatrix[prev1]);
 
 	    //update prev's: they now point to the last rows ever updated
 	    prev0 = row0;
@@ -237,7 +238,7 @@ int LYRA2(void *K, unsigned int kLen, const void *pwd, unsigned int pwdlen, cons
 
     //============================ Wrap-up Phase ===============================//
     //Absorbs one last block of the memory matrix with the full-round sponge
-    absorbRandomColumn(state, memMatrix[row0]);
+    absorbRandomColumn(state, memMatrix[row0], randomColumn);
     
     //Squeezes the key with the full-round sponge
     squeeze(state, K, kLen);
