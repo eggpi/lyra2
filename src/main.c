@@ -31,6 +31,7 @@ main(void) {
     char *pwd = "Lyra sponge";
     char *salt = "saltsaltsaltsalt";
 
+    printf("Input:\n  Password: '%s'\n  Salt: '%s'\n\n", pwd, salt);
     for (unsigned int i = 0; i < sizeof(params) / sizeof(params[0]); i++) {
         unsigned long results[NMEASUREMENTS] = {0};
         for (int j = 0; j < NMEASUREMENTS; j++) {
@@ -64,7 +65,7 @@ main(void) {
         printf("\n");
 
         qsort(results, NMEASUREMENTS, sizeof(results[0]), cmp);
-        printf("median time: %lu us\n", results[NMEASUREMENTS/2]);
+        printf("Median time: %lu us\n", results[NMEASUREMENTS/2]);
         printf("\n");
     }
 
