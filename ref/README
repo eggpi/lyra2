@@ -1,0 +1,3 @@
+This is a copy of the Lyra2 reference implementation, with minimal modifications
+to get it to build and be comparable to our implementation.
+
