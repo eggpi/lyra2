@@ -16,6 +16,12 @@ all: lyra2
 lyra2: build/main.o build/lyra2.o
 	$(CC) $(CFLAGS) $^ -o $@
 
+ref:
+	make -C $(REFDIR) linux-x86-64-sse2 nThreads=1
+
+bench-ref:
+	EXTRA_CFLAGS="-I$(PWD)/include -DUSE_PHS_INTERFACE" MAINC=$(PWD)/src/main.c make -C $(REFDIR) linux-x86-64-sse2 nThreads=1
+
 build/lyra2.o: src/lyra2.c include/sponge.h
 	mkdir -p build
 	$(CC) $< $(CFLAGS) -c -o $@
