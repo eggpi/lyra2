@@ -21,9 +21,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <immintrin.h>
-#include <omp.h>
 #include "Lyra2.h"
 #include "Sponge.h"
+
+#if (nPARALLEL > 1)
+#include <omp.h>
+#endif
 
 /**
  * Executes Lyra2 based on the G function from Blake2b or BlaMka. The number of columns of the memory matrix is set to nCols = 256.
