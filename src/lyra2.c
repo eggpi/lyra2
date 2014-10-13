@@ -64,6 +64,9 @@ write_basil(uint8_t *buf, uint32_t keylen, const char *pwd,
     return;
 }
 
+#ifdef USE_PHS_INTERFACE
+static
+#endif
 int
 lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
       const char *salt, uint32_t saltlen, uint32_t R, uint32_t C,
@@ -170,8 +173,10 @@ lyra2(char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     return 0;
 }
 
+#ifdef USE_PHS_INTERFACE
 int
 PHS(void *out, size_t outlen, const void *in, size_t inlen, const void *salt,
     size_t saltlen, unsigned int t_cost, unsigned int m_cost) {
     return lyra2(out, outlen, in, inlen, salt, saltlen, m_cost, PHS_NCOLS, t_cost);
 }
+#endif
