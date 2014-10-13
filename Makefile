@@ -7,6 +7,8 @@ override CFLAGS += -Wa,-q
 endif
 endif
 
+REFDIR=ref/Lyra2-v2.5_PHC/src/
+
 all: lyra2
 
 .PHONY: test
@@ -36,3 +38,4 @@ test/%.c: test/%.check
 
 clean:
 	rm -rf build/ lyra2 test/*.{c,o} test/*_test
+	make -C $(REFDIR) clean
