@@ -52,9 +52,9 @@ generic-x86-64:	    Lyra2.c Sponge.c Main.c Lyra2.h Sponge.h
 	$(CC) $(CFLAGS) Sponge.c Lyra2.c Main.c -o $(BIN) $(parameters)
 	@echo "Build completed, binaries in $(BIN)"
 
-linux-x86-64-sse2:	$(SSEDIR)Lyra2.c $(SSEDIR)Sponge.c Main.c $(SSEDIR)Lyra2.h $(SSEDIR)Sponge.h
+linux-x86-64-sse2:	$(SSEDIR)Lyra2.c $(SSEDIR)Sponge.c $(MAINC) $(SSEDIR)Lyra2.h $(SSEDIR)Sponge.h
 	mkdir -p $(BINDIR)
-	$(CC) $(CFLAGS) $(SSEDIR)Sponge.c $(SSEDIR)Lyra2.c Main.c -o $(BIN) $(parameters)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(SSEDIR)Sponge.c $(SSEDIR)Lyra2.c $(MAINC) -o $(BIN) $(parameters)
 	@echo "Build completed, binaries in $(BIN)"
 	
 #linux-x86-64-cuda:  $(CUDADIR)Lyra2.cu $(CUDADIR)Sponge.cu $(CUDADIR)Main.cu $(CUDADIR)Lyra2.h $(CUDADIR)Sponge.h
