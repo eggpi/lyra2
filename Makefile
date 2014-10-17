@@ -11,13 +11,10 @@ REFDIR=ref/Lyra2-v2.5_PHC/src/
 
 all: lyra2
 
-.PHONY: test
+.PHONY: test bench-ref
 
 lyra2: build/main.o build/lyra2.o
 	$(CC) $(CFLAGS) $^ -o $@
-
-ref:
-	make -C $(REFDIR) linux-x86-64-sse2 nThreads=1
 
 bench-ref:
 	EXTRA_CFLAGS="-I$(PWD)/include -DUSE_PHS_INTERFACE" MAINC=$(PWD)/src/main.c make -C $(REFDIR) linux-x86-64-sse2 nThreads=1
