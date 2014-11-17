@@ -18,7 +18,7 @@ except ImportError:
 def usage():
     print >>sys.stderr, "Usage: " + sys.argv[0] + " <build A> <build B>"
     print >>sys.stderr, "Available builds are:",
-    print >>sys.stderr, ", ".join(name for name, _ in AVAILABLE_BUILDS.items())
+    print >>sys.stderr, ", ".join(AVAILABLE_BUILDS.keys())
     sys.exit(1)
 
 def parse_time(s):
