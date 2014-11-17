@@ -57,38 +57,40 @@ if None in (bA, bB):
     usage()
 
 bins = build([(nA, bA), (nB, bB)])
-output = subprocess.check_output(["./" + bins[0]])[:-1] # remove trailing \n
-ref_output = subprocess.check_output(["./" + bins[1]])[:-1]
+a_output = subprocess.check_output(["./" + bins[0]])[:-1] # remove trailing \n
+b_output = subprocess.check_output(["./" + bins[1]])[:-1]
+a_output_lines = a_output.split("\n")
+b_output_lines = b_output.split("\n")
+assert len(a_output_lines) == len(b_output_lines)
+
 os.remove(bins[0])
 os.remove(bins[1])
 
 print "Done running builds, speedup will be relative to '%s'" % nB
 
-output_lines = output.split("\n")
-ref_output_lines = ref_output.split("\n")
-assert len(output_lines) == len(ref_output_lines)
-
-it = itertools.izip(output_lines, ref_output_lines)
-for l, rl in it:
-    assert l == rl, "different inputs"
-    if not l:
+it = itertools.izip(a_output_lines, b_output_lines)
+for al, bl in it:
+    assert al == bl, "different inputs"
+    if not al:
         break
 
-for l, rl in it:
-    assert l == rl, "different paramenters"
-    _, parameters = l.split(' ', 1)
-    print parameters + ": ",
+for al, bl in it:
+    assert al == bl, "different paramenters"
+    _, parameters = al.split(' ', 1)
+    print parameters + ": "
 
-    l, rl = next(it)
-    assert l == rl, "different outputs"
+    al, bl = next(it)
+    assert al == bl, "different outputs"
 
-    t, rt = map(parse_time, next(it))
-    speedup = 100 * (rt - t) / float(rt)
+    at, bt = map(parse_time, next(it))
+    print "    %s: %d us" % (nA, at),
+    speedup = 100 * (bt - at) / float(bt)
     if speedup > 0:
         print "{term.green}{:.2f}% faster{term.normal}".format(speedup, term = term)
     else:
         print "{term.red}{:.2f}% slower{term.normal}".format(-speedup, term = term)
+    print "    %s: %d us" % (nB, bt)
 
-    l, rl = next(it)
-    assert not l and not rl
+    al, bl = next(it)
+    assert not al and not bl
 
