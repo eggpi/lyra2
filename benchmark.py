@@ -3,6 +3,8 @@
 import os
 import subprocess
 import itertools
+import shutil
+import sys
 
 try:
     import blessings
@@ -13,6 +15,12 @@ except ImportError:
             return ''
     term = FakeTerminal()
 
+def usage():
+    print >>sys.stderr, "Usage: " + sys.argv[0] + " <build A> <build B>"
+    print >>sys.stderr, "Available builds are:",
+    print >>sys.stderr, ", ".join(name for name, _ in AVAILABLE_BUILDS.items())
+    sys.exit(1)
+
 def parse_time(s):
     sdelim = "Median time: "
     edelim = " us"
@@ -20,14 +28,41 @@ def parse_time(s):
     assert s.endswith(edelim)
     return int(s[len(sdelim):-len(edelim)])
 
-with open(os.devnull, "w") as devnull:
-    redirects = {"stdout": devnull, "stderr": devnull}
-    subprocess.check_call(["make", "clean"], **redirects)
-    subprocess.check_call(["make"], **redirects)
-    subprocess.check_call(["make", "bench-ref"], **redirects)
+def build(builds):
+    binaries = []
+    with open(os.devnull, "w") as devnull:
+        redirects = {"stdout": devnull, "stderr": devnull}
+        subprocess.check_call(["make", "clean"], **redirects)
 
-output = subprocess.check_output(["./lyra2"])[:-1] # remove trailing \n
-ref_output = subprocess.check_output(["./ref/Lyra2-v2.5_PHC/bin/Lyra2"])[:-1]
+        for name, cmd in builds:
+            subprocess.check_call(cmd.split(" "), **redirects)
+            binaries.append("lyra2-" + name)
+            shutil.move("lyra2", binaries[-1])
+    return binaries
+
+AVAILABLE_BUILDS = {
+    "lyra2-clang": "make CC=clang",
+    "lyra2-gcc": "make CC=gcc",
+    "ref-clang": "make bench-ref CC=clang",
+    "ref-gcc": "make bench-ref CC=gcc"
+}
+
+if len(sys.argv) != 3:
+    usage()
+
+nA, nB = sys.argv[1:]
+bA, bB = map(AVAILABLE_BUILDS.get, sys.argv[1:])
+if None in (bA, bB):
+    print >>sys.stderr, "Invalid build '%s'!" % (nA if bB is not None else nB)
+    usage()
+
+bins = build([(nA, bA), (nB, bB)])
+output = subprocess.check_output(["./" + bins[0]])[:-1] # remove trailing \n
+ref_output = subprocess.check_output(["./" + bins[1]])[:-1]
+os.remove(bins[0])
+os.remove(bins[1])
+
+print "Done running builds, speedup will be relative to '%s'" % nB
 
 output_lines = output.split("\n")
 ref_output_lines = ref_output.split("\n")
@@ -56,3 +91,4 @@ for l, rl in it:
 
     l, rl = next(it)
     assert not l and not rl
+

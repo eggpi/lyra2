@@ -7,7 +7,7 @@ override CFLAGS += -Wa,-q
 endif
 endif
 
-REFDIR=ref/Lyra2-v2.5_PHC/src/
+REFDIR=ref/Lyra2-v2.5_PHC/
 
 all: lyra2
 
@@ -17,7 +17,8 @@ lyra2: build/main.o build/lyra2.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 bench-ref:
-	EXTRA_CFLAGS="-I$(PWD)/include -DUSE_PHS_INTERFACE" MAINC=$(PWD)/src/main.c make -C $(REFDIR) linux-x86-64-sse2 nThreads=1
+	EXTRA_CFLAGS="-I$(PWD)/include -DUSE_PHS_INTERFACE" MAINC=$(PWD)/src/main.c make -C $(REFDIR)/src linux-x86-64-sse2 nThreads=1
+	ln $(REFDIR)/bin/Lyra2 lyra2
 
 build/lyra2.o: src/lyra2.c include/sponge.h
 	mkdir -p build
@@ -40,5 +41,5 @@ test/%.c: test/%.check
 	checkmk $^ > $@
 
 clean:
-	rm -rf build/ lyra2 test/*.{c,o} test/*_test
-	make -C $(REFDIR) clean
+	rm -rf build/ lyra2* test/*.{c,o} test/*_test
+	make -C $(REFDIR)/src clean
