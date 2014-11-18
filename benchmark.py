@@ -15,8 +15,14 @@ except ImportError:
             return ''
     term = FakeTerminal()
 
+BINARIES_DIR = "bench-binaries"
+if os.path.isdir(BINARIES_DIR):
+    shutil.rmtree(BINARIES_DIR)
+if not os.path.isdir(BINARIES_DIR):
+    os.mkdir(BINARIES_DIR)
+
 def usage():
-    print >>sys.stderr, "Usage: " + sys.argv[0] + " <build A> <build B>"
+    print >>sys.stderr, "Usage: " + sys.argv[0] + " <build A> ... <ref build>"
     print >>sys.stderr, "Available builds are:",
     print >>sys.stderr, ", ".join(AVAILABLE_BUILDS.keys())
     sys.exit(1)
@@ -32,11 +38,11 @@ def build(builds):
     binaries = []
     with open(os.devnull, "w") as devnull:
         redirects = {"stdout": devnull, "stderr": devnull}
-        subprocess.check_call(["make", "clean"], **redirects)
 
         for name, cmd in builds:
+            subprocess.check_call(["make", "clean"], **redirects)
             subprocess.check_call(cmd.split(" "), **redirects)
-            binaries.append("lyra2-" + name)
+            binaries.append(os.path.join(BINARIES_DIR, name))
             shutil.move("lyra2", binaries[-1])
     return binaries
 
@@ -47,50 +53,59 @@ AVAILABLE_BUILDS = {
     "ref-gcc": "make bench-ref CC=gcc"
 }
 
-if len(sys.argv) != 3:
+if len(sys.argv) == 1:
     usage()
 
-nA, nB = sys.argv[1:]
-bA, bB = map(AVAILABLE_BUILDS.get, sys.argv[1:])
-if None in (bA, bB):
-    print >>sys.stderr, "Invalid build '%s'!" % (nA if bB is not None else nB)
+build_names = sys.argv[1:]
+build_commands = map(AVAILABLE_BUILDS.get, sys.argv[1:])
+if None in build_commands:
+    print >>sys.stderr, \
+        "Invalid build '%s'!" % build_names[build_commands.index(None)]
     usage()
 
-bins = build([(nA, bA), (nB, bB)])
-a_output = subprocess.check_output(["./" + bins[0]])[:-1] # remove trailing \n
-b_output = subprocess.check_output(["./" + bins[1]])[:-1]
-a_output_lines = a_output.split("\n")
-b_output_lines = b_output.split("\n")
-assert len(a_output_lines) == len(b_output_lines)
+binaries = build(zip(build_names, build_commands))
+outputs = []
+for binary in binaries:
+    outputs.append(
+        subprocess.check_output([binary])[:-1].split("\n"))
+shutil.rmtree(BINARIES_DIR)
 
-os.remove(bins[0])
-os.remove(bins[1])
+for o in outputs:
+    assert len(o) == len(outputs[0])
 
-print "Done running builds, speedup will be relative to '%s'" % nB
+print "Done running builds, speedup will be relative to '%s'" % build_names[-1]
 
-it = itertools.izip(a_output_lines, b_output_lines)
-for al, bl in it:
-    assert al == bl, "different inputs"
-    if not al:
+it = itertools.izip(*outputs)
+for header_line in it:
+    for l in header_line:
+        assert l == header_line[0], "different inputs"
+    if not header_line[0]:
         break
 
-for al, bl in it:
-    assert al == bl, "different paramenters"
-    _, parameters = al.split(' ', 1)
+for results_lines in it:
+    for l in results_lines:
+        assert l == results_lines[0], "different paramenters"
+
+    _, parameters = results_lines[0].split(' ', 1)
     print parameters + ": "
 
-    al, bl = next(it)
-    assert al == bl, "different outputs"
+    outputs_lines = next(it)
+    for l in outputs_lines:
+        assert l == outputs_lines[0], "different outputs"
 
-    at, bt = map(parse_time, next(it))
-    print "    %s: %d us" % (nA, at),
-    speedup = 100 * (bt - at) / float(bt)
-    if speedup > 0:
-        print "{term.green}{:.2f}% faster{term.normal}".format(speedup, term = term)
-    else:
-        print "{term.red}{:.2f}% slower{term.normal}".format(-speedup, term = term)
-    print "    %s: %d us" % (nB, bt)
+    timings = map(parse_time, next(it))
+    for i, (name, timing) in enumerate(zip(build_names, timings)):
+        print "    %s: %d us" % (name, timing),
+        if i == len(timings) - 1:
+            print
+            continue
 
-    al, bl = next(it)
-    assert not al and not bl
+        speedup = 100 * (timings[-1] - timing) / float(timings[-1])
+        if speedup > 0:
+            print "{term.green}{:.2f}% faster{term.normal}".format(speedup, term = term)
+        else:
+            print "{term.red}{:.2f}% slower{term.normal}".format(-speedup, term = term)
 
+    blank_lines = next(it)
+    for l in blank_lines:
+        assert not l

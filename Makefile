@@ -41,5 +41,5 @@ test/%.c: test/%.check
 	checkmk $^ > $@
 
 clean:
-	rm -rf build/ lyra2* test/*.{c,o} test/*_test
+	rm -rf build/ lyra2 test/*.{c,o} test/*_test
 	make -C $(REFDIR)/src clean
