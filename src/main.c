@@ -21,8 +21,7 @@ struct lyra2_parameters {
 struct lyra2_parameters params[] = {
     { 16,  16,  64},
     { 32,  32, 128},
-    { 64,  64, 128},
-    {128, 128, 128}
+    { 64,  64, 128}
 };
 
 int
