@@ -19,6 +19,7 @@ STATIC_ASSERT(SPONGE_EXTENDED_RATE_SIZE_BYTES % sizeof(bword_t) == 0, L_divides_
 STATIC_ASSERT(sizeof(bword_t) % W, L_is_a_multiple_of_the_word_size);
 #define nbwords (SPONGE_EXTENDED_RATE_SIZE_BYTES / sizeof(bword_t))
 typedef bword_t block_t[nbwords];
+STATIC_ASSERT(sizeof(block_t) % SPONGE_MEM_ALIGNMENT == 0, blocks_are_properly_aligned);
 
 #define GEN_BLOCK_OPERATION(name, expr, ...)                                          \
 static inline void                                                                    \
