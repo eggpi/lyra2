@@ -76,14 +76,14 @@
   row2 = _mm256_roti_epi64(row2, -63); \
 
 #define DIAGONALIZE(row1, row2, row3, row4) \
-  row2 = _mm256_roti_epi64(row2, -192);     \
-  row3 = _mm256_roti_epi64(row3, -128);     \
-  row4 = _mm256_roti_epi64(row4, -64);      \
+  row2 = _mm256_permute4x64_epi64(row2, _MM_SHUFFLE(0,3,2,1)); \
+  row3 = _mm256_permute4x64_epi64(row3, _MM_SHUFFLE(1,0,3,2)); \
+  row4 = _mm256_permute4x64_epi64(row4, _MM_SHUFFLE(2,1,0,3)); \
 
 #define UNDIAGONALIZE(row1, row2, row3, row4) \
-  row2 = _mm256_roti_epi64(row2, -64);        \
-  row3 = _mm256_roti_epi64(row3, -128);       \
-  row4 = _mm256_roti_epi64(row4, -192);       \
+  row2 = _mm256_permute4x64_epi64(row2, _MM_SHUFFLE(2,1,0,3)); \
+  row3 = _mm256_permute4x64_epi64(row3, _MM_SHUFFLE(1,0,3,2)); \
+  row4 = _mm256_permute4x64_epi64(row4, _MM_SHUFFLE(0,3,2,1)); \
 
 #define BLAKE2B_ROUND(v)                 \
   G1(v[0], v[1], v[2], v[3]);            \
