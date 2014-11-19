@@ -168,7 +168,7 @@ lyra2(const char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
 
     sponge_absorb(sponge, (uint8_t *) matrix[row0][col0], sizeof(block_t),
         SPONGE_FLAG_ASSUME_PADDING | SPONGE_FLAG_EXTENDED_RATE);
-    sponge_squeeze(sponge, (uint8_t *) key, keylen, SPONGE_FLAG_EXTENDED_RATE);
+    sponge_squeeze_unaligned(sponge, (uint8_t *) key, keylen, SPONGE_FLAG_EXTENDED_RATE);
 
     _mm_free(matrix);
     sponge_destroy(sponge);

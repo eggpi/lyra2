@@ -112,26 +112,37 @@ sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
     return;
 }
 
+#define SPONGE_SQUEEZE_BODY                                                 \
+    sponge_word_t *outw = (sponge_word_t *) out;                            \
+    size_t outlenw = outlen / sizeof(sponge_word_t);                        \
+                                                                            \
+    while (outlenw >= SPONGE_EXTENDED_RATE_LENGTH) {                        \
+        COPY_SPONGE_WORDS(outw, sponge->state, SPONGE_EXTENDED_RATE_LENGTH) \
+                                                                            \
+        sponge_compress(sponge, !!(flags & SPONGE_FLAG_REDUCED));           \
+        outw += SPONGE_EXTENDED_RATE_LENGTH;                                \
+        outlenw -= SPONGE_EXTENDED_RATE_LENGTH;                             \
+    }                                                                       \
+                                                                            \
+    COPY_SPONGE_WORDS(outw, sponge->state, outlenw)                         \
+    return;
+
 static inline void
 sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
-    sponge_word_t *outw = (sponge_word_t *) out;
-    size_t outlenw = outlen / sizeof(sponge_word_t);
-
-    while (outlenw >= SPONGE_EXTENDED_RATE_LENGTH) {
-        for (unsigned int i = 0; i < SPONGE_EXTENDED_RATE_LENGTH; i++) {
-            outw[i] = sponge->state[i];
-        }
-
-        sponge_compress(sponge, !!(flags & SPONGE_FLAG_REDUCED));
-        outw += SPONGE_EXTENDED_RATE_LENGTH;
-        outlenw -= SPONGE_EXTENDED_RATE_LENGTH;
+#define COPY_SPONGE_WORDS(dst, src, nwords)      \
+    for (unsigned int i = 0; i < nwords; i++) {  \
+        dst[i] = src[i];                         \
     }
+    SPONGE_SQUEEZE_BODY
+#undef COPY_SPONGE_WORDS
+}
 
-    for (unsigned int i = 0; i < outlenw; i++) {
-        outw[i] = sponge->state[i];
-    }
-
-    return;
+static inline void
+sponge_squeeze_unaligned(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
+#define COPY_SPONGE_WORDS(dst, src, nwords) \
+    memcpy(dst, src, nwords * sizeof(sponge_word_t));
+    SPONGE_SQUEEZE_BODY
+#undef COPY_SPONGE_WORDS
 }
 
 static inline void
