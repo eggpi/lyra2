@@ -35,7 +35,7 @@ GEN_BLOCK_OPERATION(xor_rotR, bdst[i] = bsrc1[i] ^ bsrc2[(i+rot) % nbwords], uns
 
 static inline uint64_t
 block_get_lsw_from_bword(const block_t block, unsigned int bwordidx) {
-    return *((uint64_t *) &block[bwordidx]);
+    return *((uint64_t *) &block[bwordidx % nbwords]);
 }
 
 static inline void
