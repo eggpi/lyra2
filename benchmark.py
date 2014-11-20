@@ -84,7 +84,7 @@ for header_line in it:
     if not header_line[0]:
         break
 
-for i, results_lines in enumerate(it):
+for results_lines in it:
     for l in results_lines:
         assert l == results_lines[0], "different paramenters"
 
@@ -92,8 +92,8 @@ for i, results_lines in enumerate(it):
     print parameters + ": "
 
     outputs_lines = next(it)
-    for l in outputs_lines:
-        if l != outputs_lines[0]:
+    for i, l in enumerate(outputs_lines):
+        if l != outputs_lines[-1]:
             bname = build_names[i]
             print >>sys.stderr, \
                 "warning: %s has a different output from the reference" % bname
