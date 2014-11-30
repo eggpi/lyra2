@@ -98,7 +98,7 @@ START_TEST(squeeze_IV)
     uint8_t squeezed[sizeof(expected) / sizeof(uint8_t)] = {0};
 
     sponge_t *sponge = sponge_new();
-    sponge_squeeze(sponge, squeezed, sizeof(squeezed), SPONGE_FLAG_EXTENDED_RATE);
+    sponge_squeeze(sponge, (sponge_word_t *) squeezed, sizeof(squeezed), SPONGE_FLAG_EXTENDED_RATE);
 
     ck_assert(!memcmp(squeezed, expected, sizeof(expected) / sizeof(uint8_t)));
     sponge_destroy(sponge);
@@ -144,7 +144,7 @@ START_TEST(absorb_block_safe)
     };
 
     sponge_t *sponge = sponge_new();
-    sponge_absorb(sponge, data, 51, 0);
+    sponge_absorb(sponge, (sponge_word_t *) data, 51, 0);
 
     ck_assert(!memcmp(sponge->state, expected, SPONGE_STATE_SIZE_BYTES));
     sponge_destroy(sponge);
@@ -215,7 +215,7 @@ START_TEST(absorb_block_extended)
     sponge_t *sponge = sponge_new();
     memcpy(sponge->state, state, SPONGE_STATE_SIZE_BYTES);
     int flags = SPONGE_FLAG_EXTENDED_RATE | SPONGE_FLAG_ASSUME_PADDING;
-    sponge_absorb(sponge, data, sizeof(data), flags);
+    sponge_absorb(sponge, (sponge_word_t *) data, sizeof(data), flags);
 
     ck_assert(!memcmp(sponge->state, expected, SPONGE_STATE_SIZE_BYTES));
     sponge_destroy(sponge);
@@ -288,7 +288,7 @@ START_TEST(reduced_extended_duplexing)
 
     sponge_t *sponge = sponge_new();
     memcpy(sponge->state, state, SPONGE_STATE_SIZE_BYTES);
-    sponge_reduced_extended_duplexing(sponge, data, duplexed);
+    sponge_reduced_extended_duplexing(sponge, (sponge_word_t *) data, (sponge_word_t *) duplexed);
 
     ck_assert(!memcmp(sponge->state, expected, SPONGE_STATE_SIZE_BYTES));
     ck_assert(!memcmp(sponge->state, duplexed, SPONGE_EXTENDED_RATE_SIZE_BYTES));

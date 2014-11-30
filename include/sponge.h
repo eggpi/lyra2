@@ -39,9 +39,10 @@ typedef struct sponge_s sponge_t;
 
 static sponge_t *sponge_new(void);
 static void sponge_destroy(sponge_t *sponge);
-static void sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags);
-static void sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags);
-static void sponge_reduced_extended_duplexing(sponge_t *sponge, const uint8_t inblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES], uint8_t outblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES]);
+static void sponge_absorb(sponge_t *sponge, sponge_word_t *data, size_t databytes, int flags);
+static void sponge_squeeze(sponge_t *sponge, sponge_word_t *out, size_t outbytes, int flags);
+static void sponge_squeeze_unaligned(sponge_t *sponge, sponge_word_t *out, size_t outbytes, int flags);
+static void sponge_reduced_extended_duplexing(sponge_t *sponge, const sponge_word_t inblock[static SPONGE_EXTENDED_RATE_LENGTH], sponge_word_t outblock[static SPONGE_EXTENDED_RATE_LENGTH]);
 
 #if defined(_MSC_VER)
 #define ALIGN(x) __declspec(align(x))
@@ -65,7 +66,7 @@ struct sponge_s {
   sponge_word_t state[SPONGE_STATE_LENGTH];
 };
 
-static inline void sponge_pad(uint8_t *data, size_t *datalen);
+static inline void sponge_pad(uint8_t *data, size_t *databytes);
 static inline void sponge_compress(sponge_t *sponge, bool reduced);
 
 static sponge_t *
@@ -85,9 +86,9 @@ sponge_destroy(sponge_t *sponge) {
 }
 
 static inline void
-sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
+sponge_absorb(sponge_t *sponge, sponge_word_t *data, size_t databytes, int flags) {
     if (!(flags & SPONGE_FLAG_ASSUME_PADDING)) {
-        sponge_pad(data, &datalen);
+        sponge_pad((uint8_t *) data, &databytes);
     }
 
     size_t rate = SPONGE_RATE_LENGTH;
@@ -95,40 +96,38 @@ sponge_absorb(sponge_t *sponge, uint8_t *data, size_t datalen, int flags) {
         rate = SPONGE_EXTENDED_RATE_LENGTH;
     }
 
-    const sponge_word_t *dataw = (const sponge_word_t *) data;
-    size_t datalenw = datalen / sizeof(sponge_word_t);
-
+    size_t datalenw = databytes / sizeof(sponge_word_t);
     assert(datalenw % rate == 0);
+
     while (datalenw) {
         for (unsigned int i = 0; i < rate; i++) {
-            sponge->state[i] ^= dataw[i];
+            sponge->state[i] ^= data[i];
         }
 
         sponge_compress(sponge, !!(flags & SPONGE_FLAG_REDUCED));
-        dataw += rate;
+        data += rate;
         datalenw -= rate;
     }
 
     return;
 }
 
-#define SPONGE_SQUEEZE_BODY                                                 \
-    sponge_word_t *outw = (sponge_word_t *) out;                            \
-    size_t outlenw = outlen / sizeof(sponge_word_t);                        \
-                                                                            \
-    while (outlenw >= SPONGE_EXTENDED_RATE_LENGTH) {                        \
-        COPY_SPONGE_WORDS(outw, sponge->state, SPONGE_EXTENDED_RATE_LENGTH) \
-                                                                            \
-        sponge_compress(sponge, !!(flags & SPONGE_FLAG_REDUCED));           \
-        outw += SPONGE_EXTENDED_RATE_LENGTH;                                \
-        outlenw -= SPONGE_EXTENDED_RATE_LENGTH;                             \
-    }                                                                       \
-                                                                            \
-    COPY_SPONGE_WORDS(outw, sponge->state, outlenw)                         \
+#define SPONGE_SQUEEZE_BODY                                                \
+    size_t outlenw = outbytes / sizeof(sponge_word_t);                     \
+                                                                           \
+    while (outlenw >= SPONGE_EXTENDED_RATE_LENGTH) {                       \
+        COPY_SPONGE_WORDS(out, sponge->state, SPONGE_EXTENDED_RATE_LENGTH) \
+                                                                           \
+        sponge_compress(sponge, !!(flags & SPONGE_FLAG_REDUCED));          \
+        out += SPONGE_EXTENDED_RATE_LENGTH;                                \
+        outlenw -= SPONGE_EXTENDED_RATE_LENGTH;                            \
+    }                                                                      \
+                                                                           \
+    COPY_SPONGE_WORDS(out, sponge->state, outlenw)                         \
     return;
 
 static inline void
-sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
+sponge_squeeze(sponge_t *sponge, sponge_word_t *out, size_t outbytes, int flags) {
 #define COPY_SPONGE_WORDS(dst, src, nwords)      \
     for (unsigned int i = 0; i < nwords; i++) {  \
         dst[i] = src[i];                         \
@@ -138,7 +137,7 @@ sponge_squeeze(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
 }
 
 static inline void
-sponge_squeeze_unaligned(sponge_t *sponge, uint8_t *out, size_t outlen, int flags) {
+sponge_squeeze_unaligned(sponge_t *sponge, sponge_word_t *out, size_t outbytes, int flags) {
 #define COPY_SPONGE_WORDS(dst, src, nwords) \
     memcpy(dst, src, nwords * sizeof(sponge_word_t));
     SPONGE_SQUEEZE_BODY
@@ -147,20 +146,18 @@ sponge_squeeze_unaligned(sponge_t *sponge, uint8_t *out, size_t outlen, int flag
 
 static inline void
 sponge_reduced_extended_duplexing(sponge_t *sponge,
-        const uint8_t inblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES],
-        uint8_t outblock[static SPONGE_EXTENDED_RATE_SIZE_BYTES]) {
+        const sponge_word_t inblock[static SPONGE_EXTENDED_RATE_LENGTH],
+        sponge_word_t outblock[static SPONGE_EXTENDED_RATE_LENGTH]) {
     // Lyra2 always duplexes single blocks of SPONGE_RATE_SIZE_BYTES bytes,
     // and doesn't pad them.
-    const sponge_word_t *inblockw = (const sponge_word_t *) inblock;
     for (unsigned int i = 0; i < SPONGE_EXTENDED_RATE_LENGTH; i++) {
-        sponge->state[i] ^= inblockw[i];
+        sponge->state[i] ^= inblock[i];
     }
 
     sponge_compress(sponge, true);
 
-    sponge_word_t *outblockw = (sponge_word_t *) outblock;
     for (unsigned int i = 0; i < SPONGE_EXTENDED_RATE_LENGTH; i++) {
-        outblockw[i] = sponge->state[i];
+        outblock[i] = sponge->state[i];
     }
 
     return;
@@ -173,18 +170,18 @@ sponge_reduced_extended_duplexing(sponge_t *sponge,
  * in |data| to accommodate the padding; it will not allocate extra memory.
  */
 static inline void
-sponge_pad(uint8_t *data, size_t *datalen) {
-    data[(*datalen)++] = 0x80;
+sponge_pad(uint8_t *data, size_t *databytes) {
+    data[(*databytes)++] = 0x80;
 
-    size_t mod = *datalen % SPONGE_RATE_SIZE_BYTES;
+    size_t mod = *databytes % SPONGE_RATE_SIZE_BYTES;
     if (mod) {
         size_t remaining = SPONGE_RATE_SIZE_BYTES - mod;
-        memset(data + *datalen, 0, remaining);
-        *datalen += remaining;
+        memset(data + *databytes, 0, remaining);
+        *databytes += remaining;
     }
 
-    data[*datalen - 1] |= 0x01;
-    assert(*datalen % SPONGE_RATE_SIZE_BYTES == 0);
+    data[*databytes - 1] |= 0x01;
+    assert(*databytes % SPONGE_RATE_SIZE_BYTES == 0);
 
     return;
 }

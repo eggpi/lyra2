@@ -93,7 +93,7 @@ lyra2(const char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
     uint64_t prev0 = 2, row0 = 0, row1 = 1, prev1 = 0, wnd = 2;
 
     write_basil((uint8_t *) matrix, keylen, pwd, pwdlen, salt, saltlen, R, C, T);
-    sponge_absorb(sponge, (uint8_t *) matrix, basil_size, 0);
+    sponge_absorb(sponge, (sponge_word_t *) matrix, basil_size, 0);
 
     /* Setup phase */
     for (unsigned int col = 0; col < C; col++) {
@@ -101,22 +101,19 @@ lyra2(const char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         flags |= SPONGE_FLAG_REDUCED;
         flags |= SPONGE_FLAG_EXTENDED_RATE;
         flags |= SPONGE_FLAG_ASSUME_PADDING;
-        sponge_squeeze(sponge, (uint8_t *) &matrix[0][C-1-col], sizeof(block_t), flags);
+        sponge_squeeze(sponge, matrix[0][C-1-col], sizeof(block_t), flags);
     }
 
     for (unsigned int col = 0; col < C; col++) {
         sponge_reduced_extended_duplexing(sponge,
-            (const uint8_t *) &matrix[0][col],
-            (uint8_t *) &matrix[1][C-1-col]);
+            matrix[0][col], matrix[1][C-1-col]);
 
         block_xor(matrix[1][C-1-col], matrix[1][C-1-col], matrix[0][col]);
     }
 
     for (unsigned int col = 0; col < C; col++) {
         block_wordwise_add(rand, matrix[0][col], matrix[1][col]);
-        sponge_reduced_extended_duplexing(sponge,
-            (const uint8_t *) rand,
-            (uint8_t *) rand);
+        sponge_reduced_extended_duplexing(sponge, rand, rand);
         block_xor(matrix[2][C-1-col], matrix[1][col], rand);
         block_xor_rotR(matrix[0][col], matrix[0][col], rand, 1);
     }
@@ -126,8 +123,7 @@ lyra2(const char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         for (unsigned int col = 0; col < C; col++) {
             block_wordwise_add(rand, matrix[row1][col], matrix[prev0][col]);
             block_wordwise_add(rand, rand, matrix[prev1][col]);
-            sponge_reduced_extended_duplexing(sponge, (uint8_t *) rand,
-                                              (uint8_t *) rand);
+            sponge_reduced_extended_duplexing(sponge, rand, rand);
             block_xor(matrix[row0][C-1-col], matrix[prev0][col], rand);
             block_xor_rotR(matrix[row1][col], matrix[row1][col], rand, 1);
         }
@@ -155,8 +151,7 @@ lyra2(const char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
                 block_wordwise_add(rand, matrix[row0][col], matrix[row1][col]);
                 block_wordwise_add(rand, rand, matrix[prev0][col0]);
                 block_wordwise_add(rand, rand, matrix[prev1][col1]);
-                sponge_reduced_extended_duplexing(sponge,
-                    (const uint8_t *) rand, (uint8_t *) rand);
+                sponge_reduced_extended_duplexing(sponge, rand, rand);
 
                 block_xor_rotR(matrix[row0][col], matrix[row0][col], rand, 0);
                 block_xor_rotR(matrix[row1][col], matrix[row1][col], rand, 1);
@@ -166,9 +161,10 @@ lyra2(const char *key, uint32_t keylen, const char *pwd, uint32_t pwdlen,
         }
     }
 
-    sponge_absorb(sponge, (uint8_t *) matrix[row0][col0], sizeof(block_t),
+    sponge_absorb(sponge, matrix[row0][col0], sizeof(block_t),
         SPONGE_FLAG_ASSUME_PADDING | SPONGE_FLAG_EXTENDED_RATE);
-    sponge_squeeze_unaligned(sponge, (uint8_t *) key, keylen, SPONGE_FLAG_EXTENDED_RATE);
+    sponge_squeeze_unaligned(sponge, (sponge_word_t *) key, keylen,
+        SPONGE_FLAG_EXTENDED_RATE);
 
     _mm_free(matrix);
     sponge_destroy(sponge);
