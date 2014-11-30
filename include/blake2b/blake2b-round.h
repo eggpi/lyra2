@@ -30,7 +30,7 @@
 
 
 /* Microarchitecture-specific macros */
-#ifdef HAVE_AVX
+#ifdef HAVE_AVX2
 #define r16_256 _mm256_setr_epi8( 2, 3, 4, 5, 6, 7, 0, 1, 10, 11, 12, 13, 14, 15, 8, 9, 18, 19, 20, 21, 22, 23, 16, 17, 26, 27, 28, 29, 30, 31, 24, 25 )
 #define r24_256 _mm256_setr_epi8( 3, 4, 5, 6, 7, 0, 1, 2, 11, 12, 13, 14, 15, 8, 9, 10, 19, 20, 21, 22, 23, 16, 17, 18, 27, 28, 29, 30, 31, 24, 25, 26 )
 #define _mm256_roti_epi64(x, c) \
@@ -58,7 +58,7 @@
 #  endif
 #endif
 
-#ifdef HAVE_AVX
+#ifdef HAVE_AVX2
 #define G1(row1,row2,row3,row4)        \
   row1 = _mm256_add_epi64(row1, row2); \
   row4 = _mm256_xor_si256(row4, row1); \
@@ -202,5 +202,5 @@
   G2(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]); \
   UNDIAGONALIZE(v[0],v[2],v[4],v[6],v[1],v[3],v[5],v[7]);
 
-#endif // HAVE_AVX
+#endif // HAVE_AVX2
 #endif

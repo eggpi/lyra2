@@ -49,8 +49,6 @@ def build(builds):
 AVAILABLE_BUILDS = {
     "lyra2-clang": "make CC=clang",
     "lyra2-gcc": "make CC=gcc",
-    "lyra2-avx2-clang": "make CC=clang AVX=1",
-    "lyra2-avx2-gcc": "make CC=gcc AVX=1",
     "ref-clang": "make bench-ref CC=clang",
     "ref-gcc": "make bench-ref CC=gcc"
 }

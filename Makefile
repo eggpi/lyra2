@@ -1,10 +1,7 @@
-CFLAGS=-I./include/ -O3 -g -DUSE_PHS_INTERFACE -std=c99 -Wall -Wextra -Werror -msse2 -Wundef -Wshadow
+CFLAGS=-I./include/ -O3 -g -DUSE_PHS_INTERFACE -std=c99 -Wall -Wextra -Werror -march=native -Wundef -Wshadow
 
-ifdef AVX
-override CFLAGS += -mavx2 -DUSE_AVX
 ifdef OSX_GCC
 override CFLAGS += -Wa,-q
-endif
 endif
 
 REFDIR=ref/Lyra2-v2.5_PHC/

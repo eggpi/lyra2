@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <string.h>
 
-#ifdef USE_AVX
+#ifdef HAVE_AVX2
 typedef __m256i sponge_word_t;
 #define SPONGE_MEM_ALIGNMENT 32
 #else
