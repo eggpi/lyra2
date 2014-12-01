@@ -1,5 +1,67 @@
 #pragma once
 
+/*
+ * An implementation of a sponge suitable for use with Lyra2.
+ *
+ * This exposes an opaque sponge_t data type whose internal state is an array of
+ * sponge_word_t. The following functions are used to create, destroy and
+ * manipulate sponge_t instances:
+ *
+ *   static sponge_t *sponge_new(void)
+ *   static void sponge_destroy(sponge_t *sponge)
+ * Create and destroy sponge instances.
+ *
+ *   void sponge_absorb(sponge_t *sponge, sponge_word_t *data,
+ *       size_t databytes, int flags);
+ * Absorb the data in the buffer given by |data|, which is of length |databytes|
+ * in bytes.
+ *
+ *   static void sponge_squeeze(sponge_t *sponge, sponge_word_t *out,
+ *       size_t outbytes, int flags);
+ *   static void sponge_squeeze_unaligned(sponge_t *sponge, sponge_word_t *out,
+ *       size_t outbytes, int flags);
+ * Squeeze |outbytes| bytes out of the sponge and into the buffer pointed to by
+ * |out|.
+ *
+ *   static void sponge_reduced_extended_duplexing(sponge_t *sponge,
+ *       const sponge_word_t inblock[static SPONGE_EXTENDED_RATE_LENGTH],
+ *       sponge_word_t outblock[static SPONGE_EXTENDED_RATE_LENGTH]);
+ * Duplex |inblock|, which is assumed to be of size
+ * SPONGE_EXTENDED_RATE_SIZE_BYTES, leaving the result in |outblock|. As its
+ * name (cryptically) implies, this will always use the extended rate and
+ * reduced-round compression function. See the flags section below for an
+ * explanation of these terms.
+ *
+ * Aside from the in/out sponge_word_t data parameters and their respective
+ * lengths in bytes, most of these functions also accept a |flags| parameter,
+ * which is the OR of an applicable subset of the following flags:
+ *
+ * - SPONGE_FLAG_ASSUME_PADDING: if OR-ed into the flags, no padding will be
+ *   applied to the input data. Otherwise, it will be 10*1 padded to a length
+ *   that is a multiple of SPONGE_RATE_SIZE_BYTES. It will be assumed that the
+ *   input buffer contains enough space to hold the padding. The presence or
+ *   absence of this flag only affects sponge_absorb; the other API functions
+ *   will implicitly assume padding.
+ * - SPONGE_FLAG_EXTENDED_RATE: if OR-ed into the flags, the sponge will treat
+ *   its internal state as having a rate of SPONGE_EXTENDED_RATE_SIZE_BYTES
+ *   bytes, as opposed to SPONGE_RATE_SIZE_BYTES, which is used when this flag
+ *   is absent. The presence or absence of this flag only affects sponge_absorb;
+ *   the other API functions will implicitly use the extended rate. When using
+ *   the extended rate, the length of the input data is also assumed to be a
+ *   multiple of SPONGE_EXTENDED_RATE_SIZE_BYTES bytes.
+ * - SPONGE_FLAG_REDUCED: if OR-ed into the flags, the sponge will apply a
+ *   faster reduced-round compression function to its internal state instead of
+ *   the normal full-round compression function. This flag only alters the
+ *   behavior of sponge_absorb and sponge_squeeze{,unaligned}.
+ *
+ * Except for sponge_squeeze_unaligned, all of the sponge_* functions assume
+ * that its sponge_word_t (or const sponge_word_t *) parameters are aligned to
+ * a SPONGE_MEM_ALIGNMENT-byte boundary.
+ *
+ * All other symbols in this file which are not mentioned in the above
+ * description are to be considered implementation details.
+ */
+
 #include "static_assert.h"
 #include "blake2b/blake2b-round.h"
 
