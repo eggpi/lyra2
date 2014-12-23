@@ -1,7 +1,6 @@
 #include "sponge.h"
 #include "lyra2.h"
 #include "static_assert.h"
-#include "timeit.h"
 
 #include <string.h>
 #include <immintrin.h>
