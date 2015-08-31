@@ -35,7 +35,7 @@ ref/Lyra2-v2.5_PHC/bin
 bench-binaries
 
 # Report
-pfg/*.log
-pfg/*.aux
-pfg/*.tex
-pfg/*.log
+*.log
+*.aux
+*.tex
+*.log
