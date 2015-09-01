@@ -279,8 +279,9 @@ referência da BLAKE2b \footnote{Disponível em
   \url{https://github.com/BLAKE2/BLAKE2}}, com pequenas adaptações para
 remover as constantes utilizadas durante aplicações da função $G$. No
 entanto, como essa implementação da BLAKE2b não possui versão AVX2, foi
-necessário adaptá-la conforme descrito na subseção \cite{avx2} para
-que utilizasse esse conjunto de instruções.
+necessário adaptá-la conforme descrito na subseção
+\ref{sec-compression-fn-avx2} para que utilizasse esse conjunto de
+instruções.
 
 O algoritmo Lyra2 apresentado na Subseção \ref{sec-lyra2-alg} não
 especifica o parâmetro $Rt$, que determina o tamanho em \emph{bits} das
@@ -289,7 +290,7 @@ utiliza $Rt = 128$ \emph{bits}, dado que este é o tamanho de um vetor SSE2.
 Da mesma forma, o trabalho usa $Rt = 128$ quando compilado com
 SSE2, e $Rt = 256$ em sua versão AVX2.
 
-\subsection{A função de compressão em AVX2 }
+\subsection{A função de compressão em AVX2 }\label{sec-compression-fn-avx2}
 
 Esta seção detalha as mudanças feitas na implementação de referência da
 função de compressão da Lyra2 para aproveitar as instruções vetoriais do
