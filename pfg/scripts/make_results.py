@@ -13,27 +13,27 @@ rc('text', usetex = True)
 all_results = {
     'linux': [
         ('Linux, R = 16, T = 16, C = 256', (
-            ('ref-gcc', 1787.0),
             ('ref-clang', 1947.0),
             ('clang', 1767.0),
-            ('gcc', 1907.0),
             ('avx2-clang', 1207.0),
+            ('ref-gcc', 1787.0),
+            ('gcc', 1907.0),
             ('avx2-gcc', 1242.0),
         )),
         ('Linux, R = 32, T = 32, C = 256', (
-            ('ref-gcc', 7032.0),
             ('ref-clang', 7641.0),
             ('clang', 6917.0),
-            ('gcc', 7490.0),
             ('avx2-clang', 4768.0),
+            ('ref-gcc', 7032.0),
+            ('gcc', 7490.0),
             ('avx2-gcc', 4888.0),
         )),
         ('Linux, R = 64, T = 64, C = 256', (
-            ('ref-gcc', 27889.0),
             ('ref-clang', 30267.0),
             ('clang', 27393.0),
-            ('gcc', 29675.0),
             ('avx2-clang', 19013.0),
+            ('ref-gcc', 27889.0),
+            ('gcc', 29675.0),
             ('avx2-gcc', 19529.0),
         ))
     ],

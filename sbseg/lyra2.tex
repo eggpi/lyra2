@@ -464,7 +464,7 @@ implementação de referência, que se baseia fortemente no uso explícito
 de \emph{intrinsics}.
 
 A Figura \ref{results-linux} ilustra os resultados experimentais obtidos
-no ambiente Linux. Nela, os nomes \emph{ref-GCC} e \emph{ref-clang}
+no ambiente Linux. Nela, os nomes \emph{ref-gcc} e \emph{ref-clang}
 correspondem à implementação de referência compilada, respectivamente,
 com GCC e LLVM. Os nomes \emph{gcc} e \emph{clang} são análogos, mas
 referem-se à implementação proposta neste trabalho. Finalmente,
@@ -488,14 +488,14 @@ mais rápidas do que \emph{ref-gcc} em todos os testes.
 Para as demais versões, a escolha do compilador influenciou sensivelmente o
 desempenho observado, mas não apenas para esta implementação:
 considerando os três conjuntos de parâmetros, a maior variação observada
-foi entre \emph{ref-clang} e \emph{ref-GCC} para $R = T = 16$, em que
+foi entre \emph{ref-clang} e \emph{ref-gcc} para $R = T = 16$, em que
 a primeira foi $8.95\%$ mais lenta ($1947 \mu s$ contra
 $1787 \mu s$). De fato, para todos os conjuntos de parâmetros, as
 versões \emph{ref-clang} foram cerca de $8\%$ mais lentas do que as
-\emph{ref-GCC}, e as versões \emph{gcc} foram $8\%$ \emph{mais lentas}
+\emph{ref-gcc}, e as versões \emph{gcc} foram $8\%$ \emph{mais lentas}
 do que as \emph{clang}. Entre as versões sem AVX2, \emph{clang} foi a
 mais rápida para todas as configurações, mas por apenas cerca de
-$1.5\%$ do tempo de \emph{ref-GCC}, uma diferença pouco expressiva.
+$1.5\%$ do tempo de \emph{ref-gcc}, uma diferença pouco expressiva.
 
 A Figura \ref{results-osx} mostra os resultados dos mesmos testes
 executados na máquina rodando OSX. Como nela não há suporte ao conjunto
