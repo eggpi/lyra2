@@ -36,7 +36,7 @@
 \begin{abstract}
 Password authentication has become even more challenging with the significant increase
 in available computing power by means of dedicated hardware and GPUs. This work
-presents an efficient software implementation of the password hashing function Lyra2 in modern Intel platforms,
+presents an efficient software implementation of the password hashing scheme Lyra2 in modern Intel platforms,
 according to version 2.5 of its specification. The resulting implementation employs
 AVX2 vector instructions for a performance improvement of 30\% over the reference
 implementation. In practice, it is important to know the precise performance of such primitives to inform
@@ -46,7 +46,7 @@ parameter choice and corresponding security guarantees.
 \begin{resumo}
 O problema de autenticação por senha tem se tornado cada vez mais desafiador, face ao crescimento
 significativo de poder computacional na forma de \emph{hardware} dedicado e placas gráficas.
-Este trabalho apresenta uma implementação eficiente em \emph{software} da função da derivação Lyra2 em arquiteturas Intel modernas,
+Este trabalho apresenta uma implementação eficiente em \emph{software} do esquema de hash de senhas Lyra2 em arquiteturas Intel modernas,
 conforme a versão 2.5 de sua especificação. A implementação resultante emprega instruções vetoriais AVX2
 para ganhos de desempenho em torno de 30\% sobre a implementação de referência. Na prática, é importante
 determinar precisamente o desempenho de primitivas dessa natureza para informar a escolha de parâmetros
@@ -63,9 +63,9 @@ conhece a senha correta. Isso implica, é claro, o armazenamento da senha
 de alguma forma no sistema.
 
 Como medida de segurança, recomenda-se não armazenar a senha conforme
-fornecida pelo usuário, mas sim um \emph{hash} produzido por uma
-função de \emph{hash} de senhas. O \emph{hash} produz uma sequência
-pseudoaleatória de \emph{bits} tal que, dado o valor de \emph{hash} $h$ de uma senha
+fornecida pelo usuário, mas sim um \emph{hash} produzido por um esquema
+de \emph{hash} de senhas. O \emph{hash} produz uma sequência pseudoaleatória
+de \emph{bits} tal que, dado o valor de \emph{hash} $h$ de uma senha
 $s$, deve ser computacionalmente difícil descobrir qualquer senha
 (incluindo $s$) cujo \emph{hash} também seja $h$ -- uma propriedade
 conhecida como resistência ao cálculo de pré-imagem.
@@ -78,24 +78,24 @@ Muitas técnicas foram introduzidas para dificultar
 ataques de busca exaustiva -- aqueles em que um atacante faz tentativas
 sucessivas de adivinhar uma senha -- sem onerar usuários exigindo que
 criem e memorizem senhas longas e suficientemente entrópicas.
-No campo das funções de \emph{hash} de senhas, isso significa a inclusão
+No campo dos esquemas de \emph{hash} de senhas, isso significa a inclusão
 de parâmetros de tempo e espaço de memória mínimos a serem utilizados
 pela operação de \emph{hash}. O parâmetro de tempo impõe um limite à
 velocidade com que um atacante pode fazer tentativas sequenciais,
 enquanto o de espaço visa a proteger contra ataques que empregam \emph{hardware}
 dedicado ou GPUs, caracterizados pelo paralelismo e escassez de memória.
 
-Neste trabalho, foi produzida uma implementação da
-função de \emph{hash} de senhas Lyra2, proposta por pesquisadores
+Neste trabalho, foi produzida uma implementação do
+esquema de \emph{hash} de senhas Lyra2, proposta por pesquisadores
 brasileiros e finalista do \emph{Password Hashing Competition}\footnote{\url{https://password-hashing.net/}}, aproveitando
 conjuntos de instruções presentes em arquiteturas modernas. Acredita-se
-que a Lyra2 possua as propriedades de segurança exigidas de uma função
+que o Lyra2 possua as propriedades de segurança exigidas de um esquema
 de \emph{hash} de senhas, e sua especificação inclui parâmetros de espaço e tempo
 independentes a serem respeitados por uma implementação correta.
 A implementação resultante\footnote{Disponível em \url{https://github.com/guilherme-pg/lyra2}}
 é compatível com a de referência e competitiva em termos de desempenho. Houve colaboração
-ainda com o desenvolvimento da especificação da Lyra2 \cite{lyra2-spec},
-na medida em que este trabalho trouxe à tona diversas 
+ainda com o desenvolvimento da especificação do Lyra2 \cite{lyra2-spec},
+na medida em que este trabalho trouxe à tona diversas
 inconsistências no documento de especificação e na implementação de referência.
 
 \section{A função Lyra2}
@@ -123,14 +123,14 @@ $n$\tabularnewline
 \end{longtable}
 
 \vspace{-1cm}
-A função Lyra2 se baseia na construção de esponja, uma forma geral para a
+O Lyra2 se baseia na construção de esponja, uma forma geral para a
 geração de funções de \emph{hash} seguras com entradas e saídas de
 tamanhos arbitrários a partir de uma função de compressão e um esquema
-de \emph{padding}. De fato, o cálculo da Lyra2 para uma determinada entrada pode ser
+de \emph{padding}. De fato, o cálculo do Lyra2 para uma determinada entrada pode ser
 descrito em alto nível como a aplicação iterada de operações de esponja,
 a serem descritas a seguir, a dados mantidos em uma matriz de estado do
 algoritmo. Consequentemente, conjectura-se que as propriedades de
-segurança da Lyra2 decorrem tanto da segurança da esponja subjacente,
+segurança do Lyra2 decorrem tanto da segurança da esponja subjacente,
 quanto da escolha criteriosa de operações de esponja empregadas, que
 dificulta a paralelização do algoritmo.
 
@@ -171,14 +171,14 @@ ilustra a construção de \emph{duplex}.
 \caption{A construção de duplex, adaptado de~\cite{sponge}.\label{img-duplex}}
 \end{figure}
 
-A Lyra2 utiliza uma versão modificada da construção de \emph{duplex}, em
+O Lyra2 utiliza uma versão modificada da construção de \emph{duplex}, em
 que as operações de \emph{absorb} e \emph{squeeze} também são
 suportadas, e podem ser efetuadas independentemente.
 
 \subsection{A função de compressão}\label{sec-compression-fn}
 
 Conforme visto anteriormente, a construção de esponja depende de uma
-função $f$, denominada função de compressão. Para a esponja usada na
+função $f$, denominada função de compressão. Para a esponja usada no
 Lyra2, a função de compressão é uma versão levemente adaptada da função
 $G$ que integra a função de \emph{hash} BLAKE2b \cite{blake2b} . A função
 $G(a, b, c, d)$ utilizada é dada por:
@@ -202,7 +202,7 @@ uma das diagonais. Essas oito aplicações constituem uma \emph{rodada}, e
 o algoritmo prevê transformações de seu estado em conjuntos de 12
 rodadas por vez.
 
-Na Lyra2, o estado da esponja contém $128$ bytes e é visto como uma
+No Lyra2, o estado da esponja contém $128$ bytes e é visto como uma
 matriz de estado linearizada, e as rodadas são definidas de forma
 análoga. No entanto, a fim de melhorar o desempenho do algoritmo, a
 maior parte das compressões efetuadas pela esponja não utiliza
@@ -293,11 +293,11 @@ SSE2, e $Rt = 256$ em sua versão AVX2.
 \subsection{A função de compressão em AVX2 }\label{sec-compression-fn-avx2}
 
 Esta seção detalha as mudanças feitas na implementação de referência da
-função de compressão da Lyra2 para aproveitar as instruções vetoriais do
+função de compressão do Lyra2 para aproveitar as instruções vetoriais do
 conjunto AVX2.
 
 Conforme exposto na Subseção \ref{sec-compression-fn}, a função de
-compressão da Lyra2 consiste de $\rho$ rodadas da função $G$ sobre uma
+compressão do Lyra2 consiste de $\rho$ rodadas da função $G$ sobre uma
 matriz de estado $4 \times 4$ de $64$ \emph{bits}. Assim, para uma matriz
 da forma:
 \begin{align*}
@@ -317,7 +317,7 @@ G(v_{0}, v_{4}, v_{8}, v_{12}) & G(v_{1}, v_{5}, v_{9}, v_{13}) & G(v_{2}, v_{6}
 G(v_{0}, v_{5}, v_{10}, v_{15}) & G(v_{1}, v_{6}, v_{11}, v_{12}) & G(v_{2}, v_{7}, v_{8}, v_{13}) & G(v_{3}, v_{4}, v_{9}, v_{14})
 \end{matrix}
 \end{align*}
-onde as aplicações em cada linha podem ocorrer em paralelo. No caso da
+onde as aplicações em cada linha podem ocorrer em paralelo. No caso do
 Lyra2, o estado da esponja possui $16 \times 64 = 1024$ \emph{bits} e é
 interpretado como uma matriz de estado linearizada em ordem de linhas
 para os propósitos da função de compressão.
@@ -429,7 +429,7 @@ onde o parâmetro \texttt{v} é uma matriz de estado linearizada, de forma
 que \texttt{v[i]} é um \texttt{\_\_m256i} contendo a $i$-ésima linha.
 
 Além dessas adaptações na função de compressão, as únicas mudanças
-não-triviais feitas no restante do código de a implementação para
+não-triviais feitas no restante do código da implementação para
 habilitar nela o uso de AVX2 dizem respeito aos requerimentos de
 alinhamento de memória nos operandos das novas instruções.
 
@@ -437,7 +437,7 @@ alinhamento de memória nos operandos das novas instruções.
 \label{sec-experimental}
 
 Esta seção apresenta os resultados de uma comparação de desempenho entre
-diferentes implementações da função Lyra2. Os testes foram conduzidos em
+diferentes implementações do Lyra2. Os testes foram conduzidos em
 dois ambientes diferentes: um Macbook Pro Retina modelo Mid-2012 rodando
 o sistema operacional OSX na versão 10.10.1, com um processador Intel
 Core i7-3720QM (família Ivy Bridge) e 16 GiB de memória, e uma máquina
@@ -520,7 +520,7 @@ escrita.
 
 \section{Conclusão}
 
-Este trabalho produziu uma implementação de uma nova função de
+Este trabalho produziu uma implementação de um novo esquema de
 \emph{hash} de senhas tomando proveito de arquiteturas e compiladores
 modernos. A implementação é compatível e competitiva com a de
 referência, tendo-se obtido significativa melhora de desempenho com o
