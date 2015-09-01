@@ -39,3 +39,7 @@ bench-binaries
 *.aux
 *.tex
 *.log
+*.bbl
+*.fdb_latexmk
+*.fls
+*.blg
