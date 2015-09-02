@@ -32,7 +32,11 @@
 #endif
 
 #if defined(__AVX2__)
+#if defined(NO_AVX2)
+#pragma message "Not building with AVX2 even though there's support"
+#else
 #define HAVE_AVX2
+#endif
 #endif
 
 #if defined(__XOP__)

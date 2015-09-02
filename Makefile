@@ -4,6 +4,10 @@ ifdef OSX_GCC
 override CFLAGS += -Wa,-q
 endif
 
+ifdef NO_AVX2
+override CFLAGS += -DNO_AVX2
+endif
+
 REFDIR=ref/Lyra2-v2.5_PHC/
 
 all: lyra2
