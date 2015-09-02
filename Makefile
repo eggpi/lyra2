@@ -1,4 +1,4 @@
-CFLAGS=-I./include/ -O3 -g -DUSE_PHS_INTERFACE -std=c99 -Wall -Wextra -Werror -march=native -Wundef -Wshadow -lm
+CFLAGS=-I./include/ -O3 -g -DUSE_PHS_INTERFACE -std=c99 -Wall -Wextra -Werror -march=native -Wundef -Wshadow
 
 ifdef OSX_GCC
 override CFLAGS += -Wa,-q
@@ -20,7 +20,7 @@ ifeq ($(HAS_CHECK),true)
 endif
 
 lyra2: build/main.o build/lyra2.o
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) -lm $^ -o $@
 
 bench-ref:
 	EXTRA_CFLAGS="-I$(PWD)/include -DUSE_PHS_INTERFACE" MAINC=$(PWD)/src/main.c make -C $(REFDIR)/src linux-x86-64-sse2 nThreads=1
