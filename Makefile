@@ -1,4 +1,4 @@
-CFLAGS=-I./include/ -O3 -g -DUSE_PHS_INTERFACE -std=c99 -Wall -Wextra -Werror -march=native -Wundef -Wshadow
+CFLAGS=-I./include/ -O3 -g -DUSE_PHS_INTERFACE -std=c99 -Wall -Wextra -Werror -march=native -Wundef -Wshadow -lm
 
 ifdef OSX_GCC
 override CFLAGS += -Wa,-q

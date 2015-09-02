@@ -104,7 +104,7 @@ for results_lines in it:
                 "warning: %s has a different output from the reference" % bname
 
     timings = map(parse_time, next(it))
-    stdevs = map(parse_stdev, next(it))
+    sdevs = map(parse_stdev, next(it))
     for i, (name, timing, sdev) in enumerate(zip(build_names, timings, sdevs)):
         print "    %s: %d us (stdev: %.2f)" % (name, timing, sdev),
         if i == len(timings) - 1:
