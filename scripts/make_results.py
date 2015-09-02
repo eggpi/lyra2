@@ -3,55 +3,27 @@
 from matplotlib import rc, pyplot as plt
 import numpy as np
 
+import sys
 import itertools
 import os
+import json
 
 # use LaTeX fonts
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 rc('text', usetex = True)
 
-all_results = {
-    'linux': [
-        ('Linux, R = 16, T = 16, C = 256', (
-            ('ref-clang', 1947.0),
-            ('clang', 1767.0),
-            ('avx2-clang', 1207.0),
-            ('ref-gcc', 1787.0),
-            ('gcc', 1907.0),
-            ('avx2-gcc', 1242.0),
-        )),
-        ('Linux, R = 32, T = 32, C = 256', (
-            ('ref-clang', 7641.0),
-            ('clang', 6917.0),
-            ('avx2-clang', 4768.0),
-            ('ref-gcc', 7032.0),
-            ('gcc', 7490.0),
-            ('avx2-gcc', 4888.0),
-        )),
-        ('Linux, R = 64, T = 64, C = 256', (
-            ('ref-clang', 30267.0),
-            ('clang', 27393.0),
-            ('avx2-clang', 19013.0),
-            ('ref-gcc', 27889.0),
-            ('gcc', 29675.0),
-            ('avx2-gcc', 19529.0),
-        ))
-    ],
-    'osx': [
-        ('OSX, R = 16, T = 16, C = 256', (
-            ('ref-clang', 2329.0),
-            ('clang', 1896.0)
-        )),
-        ('OSX, R = 32, T = 32, C = 256', (
-            ('ref-clang', 9148.0),
-            ('clang', 7523.0),
-        )),
-        ('OSX, R = 64, T = 64, C = 256', (
-            ('ref-clang', 36287.0),
-            ('clang', 29994.0)
-        ))
-    ]
-}
+IMAGE_DIR = sys.argv[1]
+
+all_results = {}
+for results_file in sys.argv[2:]:
+    env, _ = os.path.splitext(os.path.basename(results_file))
+    with open(results_file) as f:
+        results = json.load(f)
+
+    all_results[env.lower()] = []
+    for params in results:
+        all_results[env.lower()].append(
+            (env + ', ' + params, results[params].items()))
 
 for _, results in all_results.items():
     for _, timings in results:
@@ -80,9 +52,9 @@ for figname, results in all_results.items():
         step = 0.0125
         left = step
         color_picker = itertools.cycle(colors)
-        for build, time in timings:
+        for build, (time, sdev) in timings:
             b = a.bar(left = left,
-                      height = time / timings[0][1],
+                      height = float(time) / timings[0][1][0],
                       width = width,
                       color = next(color_picker),
                       label = build)
@@ -106,4 +78,4 @@ for figname, results in all_results.items():
         loc = 'lower center',
         fontsize = 18, frameon = False)
 
-    plt.savefig(os.path.join('img', figname), dpi = 100)
+    plt.savefig(os.path.join(IMAGE_DIR, figname), dpi = 100)

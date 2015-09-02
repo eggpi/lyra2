@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import json
 import subprocess
 import itertools
 import shutil
@@ -20,6 +21,19 @@ if os.path.isdir(BINARIES_DIR):
     shutil.rmtree(BINARIES_DIR)
 if not os.path.isdir(BINARIES_DIR):
     os.mkdir(BINARIES_DIR)
+
+RESULTS_DIR = "bench-results"
+if os.path.isdir(RESULTS_DIR):
+    shutil.rmtree(RESULTS_DIR)
+if not os.path.isdir(RESULTS_DIR):
+    os.mkdir(RESULTS_DIR)
+
+if sys.platform.startswith('linux'):
+    RESULTS_FILE = "Linux.json"
+elif sys.platform.startswith('darwin'):
+    RESULTS_FILE = "OSX.json"
+else:
+    assert False, "Unknown platform?"
 
 def usage():
     print >>sys.stderr, "Usage: " + sys.argv[0] + " <build A> ... <ref build>"
@@ -89,12 +103,14 @@ for header_line in it:
     if not header_line[0]:
         break
 
+results = {}
 for results_lines in it:
     for l in results_lines:
         assert l == results_lines[0], "different paramenters"
 
     _, parameters = results_lines[0].split(' ', 1)
     print parameters + ": "
+    results[parameters] = {}
 
     outputs_lines = next(it)
     for i, l in enumerate(outputs_lines):
@@ -107,6 +123,7 @@ for results_lines in it:
     sdevs = map(parse_stdev, next(it))
     for i, (name, timing, sdev) in enumerate(zip(build_names, timings, sdevs)):
         print "    %s: %d us (stdev: %.2f)" % (name, timing, sdev),
+        results[parameters][name] = (timing, sdev)
         if i == len(timings) - 1:
             print
             continue
@@ -120,3 +137,6 @@ for results_lines in it:
     blank_lines = next(it)
     for l in blank_lines:
         assert not l
+
+with open(os.path.join(RESULTS_DIR, RESULTS_FILE), "w") as f:
+    json.dump(results, f, indent = 2)
