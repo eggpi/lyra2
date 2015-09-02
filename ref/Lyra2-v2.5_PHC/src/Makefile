@@ -5,7 +5,7 @@
 
 CC?=gcc
 NVCC=nvcc
-CFLAGS=-std=c99 -Wall -pedantic -O3 -msse2 -funroll-loops -march=native -Ofast -flto -Wno-unused-variable
+CFLAGS=-std=c99 -Wall -pedantic -O3 -msse2 -funroll-loops -march=native -Ofast -Wno-unused-variable
 #CFLAGS=-std=c99 -Wall -pedantic -msse2 -fopenmp -funroll-loops -O0 -g -Wno-unused-variable #valgrind
 
 BINDIR=../bin
