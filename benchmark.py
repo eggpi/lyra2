@@ -34,6 +34,11 @@ def parse_time(s):
     assert s.endswith(edelim)
     return int(s[len(sdelim):-len(edelim)])
 
+def parse_stdev(s):
+    sdelim = "Standard deviation: "
+    assert s.startswith(sdelim)
+    return float(s[len(sdelim):])
+
 def build(builds):
     binaries = []
     with open(os.devnull, "w") as devnull:
@@ -99,8 +104,9 @@ for results_lines in it:
                 "warning: %s has a different output from the reference" % bname
 
     timings = map(parse_time, next(it))
-    for i, (name, timing) in enumerate(zip(build_names, timings)):
-        print "    %s: %d us" % (name, timing),
+    stdevs = map(parse_stdev, next(it))
+    for i, (name, timing, sdev) in enumerate(zip(build_names, timings, sdevs)):
+        print "    %s: %d us (stdev: %.2f)" % (name, timing, sdev),
         if i == len(timings) - 1:
             print
             continue

@@ -1,5 +1,6 @@
 #include "lyra2.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,6 +24,18 @@ struct lyra2_parameters params[] = {
     { 32,  32, 128},
     { 64,  64, 128}
 };
+
+float
+compute_standard_deviation(unsigned long *values) {
+    float avg = 0.0f, var = 0.0f;
+    for (int i = 0; i < NMEASUREMENTS; i++) {
+        avg += ((float) values[i]) / ((float) NMEASUREMENTS);
+    }
+    for (int i = 0; i < NMEASUREMENTS; i++) {
+        var += pow(((float) values[i]) - avg, 2) / ((float) NMEASUREMENTS);
+    }
+    return sqrt(var);
+}
 
 int
 main(void) {
@@ -65,6 +78,7 @@ main(void) {
 
         qsort(results, NMEASUREMENTS, sizeof(results[0]), cmp);
         printf("Median time: %lu us\n", results[NMEASUREMENTS/2]);
+        printf("Standard deviation: %.2f\n", compute_standard_deviation(results));
         printf("\n");
     }
 
