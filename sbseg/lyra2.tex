@@ -279,9 +279,8 @@ referência da BLAKE2b \footnote{Disponível em
   \url{https://github.com/BLAKE2/BLAKE2}}, com pequenas adaptações para
 remover as constantes utilizadas durante aplicações da função $G$. No
 entanto, como essa implementação da BLAKE2b não possui versão AVX2, foi
-necessário adaptá-la conforme descrito na subseção
-\ref{sec-compression-fn-avx2} para que utilizasse esse conjunto de
-instruções.
+necessário adaptá-la conforme descrito na subseção \ref{sec-compression-fn-avx2}
+para que utilizasse esse conjunto de instruções.
 
 O algoritmo Lyra2 apresentado na Subseção \ref{sec-lyra2-alg} não
 especifica o parâmetro $Rt$, que determina o tamanho em \emph{bits} das
@@ -439,7 +438,7 @@ alinhamento de memória nos operandos das novas instruções.
 Esta seção apresenta os resultados de uma comparação de desempenho entre
 diferentes implementações do Lyra2. Os testes foram conduzidos em
 dois ambientes diferentes: um Macbook Pro Retina modelo Mid-2012 rodando
-o sistema operacional OSX na versão 10.10.1, com um processador Intel
+o sistema operacional OSX na versão 10.10.4, com um processador Intel
 Core i7-3720QM (família Ivy Bridge) e 16 GiB de memória, e uma máquina
 com processador Intel Core i7-4770 (família Haswell) e 8GiB de memória
 rodando a distribuição Linux Fedora 18. O recurso TurboBoost, que
@@ -454,6 +453,11 @@ pela implementação de referência. A mediana dos tempos levados nessas
 $1000$ execuções foi tomada como métrica final de desempenho, para
 cada conjunto de parâmetros. Os processos foram executados usando
 prioridade normal, o padrão em ambos os sistemas.
+
+Na implementação de referência, as otimizações em tempo de ligação (\emph{link
+time optimizations}) foram desativadas por causar erros de ligação no ambiente
+Linux com LLVM, após constatar-se que não traziam diferença significativa de
+desempenho nos testes realizados com GCC.
 
 Para cada um dos códigos, foram testados os binários gerados pelos
 compiladores LLVM e GCC, nas respectivas versões 3.4.2 e 4.9.0. No
@@ -484,26 +488,31 @@ As versões AVX2, conforme esperado, tiveram desempenho melhor do que as
 demais. Nelas, o compilador utilizado não trouxe diferença significativa
 (\emph{avx2-clang} foi apenas cerca de $3\%$ mais rápida do que
 \emph{avx2-gcc} em todos os testes), e ambas foram cerca de $30\%$
-mais rápidas do que \emph{ref-gcc} em todos os testes.
+mais rápidas do que \emph{ref-gcc} em todos os testes. Os desvios padrão
+para as medições destas versões foram baixos em todos os testes: cerca de $6$,
+$9$ e $18 \mu s$, respectivamente, para os testes representados na Figura
+\ref{results-linux}.
 
-Para as demais versões, a escolha do compilador influenciou sensivelmente o
-desempenho observado, mas não apenas para esta implementação:
-considerando os três conjuntos de parâmetros, a maior variação observada
-foi entre \emph{ref-clang} e \emph{ref-gcc} para $R = T = 16$, em que
-a primeira foi $8.95\%$ mais lenta ($1947 \mu s$ contra
-$1787 \mu s$). De fato, para todos os conjuntos de parâmetros, as
-versões \emph{ref-clang} foram cerca de $8\%$ mais lentas do que as
-\emph{ref-gcc}, e as versões \emph{gcc} foram $8\%$ \emph{mais lentas}
-do que as \emph{clang}. Entre as versões sem AVX2, \emph{clang} foi a
-mais rápida para todas as configurações, mas por apenas cerca de
-$1.5\%$ do tempo de \emph{ref-gcc}, uma diferença pouco expressiva.
+A escolha do compilador influenciou sensivelmente a implementação de
+referência. Para todos os conjuntos de parâmetros, \emph{ref-clang} foi cerca
+de $9\%$ mais lenta do que \emph{ref-gcc}. Para a implementação deste trabalho,
+no entanto, observou-se influência contrária dos compiladores, e de muito menor
+magnitude: \emph{gcc} foi apenas cerca de $1.5\%$ mais lenta do que \emph{clang}
+em todos os testes.
+
+Entre as versões SSE2, \emph{clang} foi a mais rápida para todos os conjuntos
+de parâmetros, com desempenho cerca de $17\%$ melhor do que \emph{ref-gcc}. A
+maior diferença observada ocorreu com $R = T = 16$, em que \emph{clang} foi
+$17.76\%$ mais rápida do que \emph{ref-gcc} ($1445 \mu s$ contra $1757 \mu s$).
+Os desvios padrão para essas versões também se mantiveram baixos em todas as
+configurações: em torno de $6$, $11$ e $20 \mu s$, respectivamente.
 
 A Figura \ref{results-osx} mostra os resultados dos mesmos testes
 executados na máquina rodando OSX. Como nela não há suporte ao conjunto
 de instruções AVX2, não foi possível avaliar \emph{avx2-clang} nessa
 plataforma. Aqui registrou-se significativa diferença de desempenho entre os
-binários, com \emph{clang} sendo cerca de $18\%$ mais rápida do que a
-implementação de referência, em todos os testes.
+binários, com \emph{clang} sendo cerca de $25\%$ mais rápida do que a
+implementação de referência em todos os testes.
 
 \begin{figure}[htbp]
 \centering
@@ -511,6 +520,15 @@ implementação de referência, em todos os testes.
 \caption{Tempos de execução normalizados para as três configurações de
 parâmetros em OSX\label{results-osx}.}
 \end{figure}
+
+Cabe notar, no entanto, que as medições no ambiente OSX apresentaram desvios
+padrão bem maiores do que em Linux para ambas as implementações. No teste de
+maior diferença relativa entre as implementações, $R = T = 16$, \emph{clang} foi
+$26.76\%$ mais rápida do que \emph{ref-clang} ($1888 \mu s$ contra $2578 \mu
+s$), com desvios padrão de $21.90 \mu s$ e $35.34 \mu s$, respectivamente. Para
+o terceiro conjunto de parâmetros, $R = T = 64$, \emph{clang} teve alto desvio
+padrão ($177.39 \mu s$, contra $121.31 \mu s$ de \emph{ref-clang}), mas
+desempenho ainda $25.31\%$ melhor.
 
 Dado que a implementação proposta foi desenvolvida no ambiente com OSX e
 LLVM, e a de referência foi produzida em ambiente Linux com GCC,
