@@ -22,8 +22,11 @@ for results_file in sys.argv[2:]:
 
     all_results[env.lower()] = []
     for params in results:
+        builds_and_timings = results[params].items()
+        builds_and_timings.sort(key = lambda t: t[0].rsplit('-', 1)[-1])
+
         all_results[env.lower()].append(
-            (env + ', ' + params, results[params].items()))
+            (env + ', ' + params, builds_and_timings))
 
 for _, results in all_results.items():
     for _, timings in results:
@@ -32,7 +35,17 @@ for _, results in all_results.items():
 for figname, results in all_results.items():
     fig, axes = plt.subplots(
         ncols = len(results), nrows = 1, facecolor = 'white', sharey = True)
+
     for a, (test, timings) in zip(axes, results):
+        reference_time = None
+        for _, timings in results:
+            for build, (time, sdev) in timings:
+                # We sorted by build name above, so we know ref-clang will appear
+                # before ref-gcc. This means we'll use ref-gcc if available, and
+                # ref-clang as a fallback.
+                if build == 'ref-gcc' or build == 'ref-clang':
+                    reference_time = float(time)
+
         width = 0.3
         bars = [] # save the last bar graphs we've built for the legend
         ntimings = len(timings)
@@ -54,10 +67,10 @@ for figname, results in all_results.items():
         color_picker = itertools.cycle(colors)
         for build, (time, sdev) in timings:
             b = a.bar(left = left,
-                      height = float(time) / timings[0][1][0],
+                      height = float(time) / reference_time,
                       width = width,
                       color = next(color_picker),
-                      label = build)
+                      label = build.replace('lyra2-', ''))
             bars.append(b)
             left += width + step
 
