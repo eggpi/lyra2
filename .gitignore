@@ -33,7 +33,6 @@ test/*_test
 lyra2
 ref/Lyra2-v2.5_PHC/bin
 bench-binaries
-bench-results
 
 # Report
 *.log
