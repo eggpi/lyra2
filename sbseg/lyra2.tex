@@ -454,10 +454,10 @@ $1000$ execuções foi tomada como métrica final de desempenho, para
 cada conjunto de parâmetros. Os processos foram executados usando
 prioridade normal, o padrão em ambos os sistemas.
 
-Na implementação de referência, as otimizações em tempo de ligação (\emph{link
-time optimizations}) foram desativadas por causar erros de ligação no ambiente
-Linux com LLVM, após constatar-se que não traziam diferença significativa de
-desempenho nos testes realizados com GCC.
+Na implementação de referência, as opções de compilação \emph{-flto},
+\emph{-ftree-vectorizer-verbose} e \emph{-mprever-avx128} foram desativadas em
+compilação com LLVM (mas mantidas com GCC), visto que a primeira causou erros
+de ligação em Linux, e as demais não são suportadas por esse compilador.
 
 Para cada um dos códigos, foram testados os binários gerados pelos
 compiladores LLVM e GCC, nas respectivas versões 3.4.2 e 4.9.0. No
