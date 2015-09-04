@@ -279,7 +279,7 @@ referência da BLAKE2b \footnote{Disponível em
   \url{https://github.com/BLAKE2/BLAKE2}}, com pequenas adaptações para
 remover as constantes utilizadas durante aplicações da função $G$. No
 entanto, como essa implementação da BLAKE2b não possui versão AVX2, foi
-necessário adaptá-la conforme descrito na subseção \ref{sec-compression-fn-avx2}
+necessário adaptá-la conforme descrito na Subseção \ref{sec-compression-fn-avx2}
 para que utilizasse esse conjunto de instruções.
 
 O algoritmo Lyra2 apresentado na Subseção \ref{sec-lyra2-alg} não
@@ -474,9 +474,10 @@ correspondem à implementação de referência compilada, respectivamente,
 com GCC e LLVM. Os nomes \emph{gcc} e \emph{clang} são análogos, mas
 referem-se à implementação proposta neste trabalho. Finalmente,
 \emph{avx2-clang} e \emph{avx2-gcc} correspondem à variante que utiliza
-as instruções AVX2, descrita na subseção \cite{avx2}, novamente usando os
-dois compiladores analisados. Os tempos de execução foram normalizados
-pelo da medição \emph{ref-gcc}, para cada conjunto de parâmetros.
+as instruções AVX2, descrita na Subseção \ref{sec-compression-fn-avx2},
+novamente usando os dois compiladores analisados. Os tempos de execução
+foram normalizados pelo da medição \emph{ref-gcc}, para cada conjunto de
+parâmetros.
 
 \begin{figure}[htbp]
 \centering
