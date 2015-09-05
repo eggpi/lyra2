@@ -222,8 +222,13 @@ denominadas operações \emph{reduzidas} da esponja.
 
 \subsection{O algoritmo Lyra2 }\label{sec-lyra2-alg}
 
-A Figura \ref{lyra2-alg} contém o pseudocódigo do algoritmo Lyra2
-implementado para este trabalho. Basicamente, o algoritmo consiste de três etapas: \emph{bootstrapping},
+A Figura \ref{lyra2-alg} contém o pseudocódigo do algoritmo Lyra2 implementado
+para este trabalho, correspondente à versão 2.5 da especificação. A versão 3.0,
+a mais recente do algoritmo, funciona de forma bastante similar à descrita
+nesta Seção, de forma que a implementação proposta pode ser facilmente
+atualizada.
+
+Conceitualmente, o algoritmo consiste de três etapas: \emph{bootstrapping},
 \emph{setup} e \emph{wandering}. Todas elas trabalham sobre uma matriz
 de estado de $R \times C$ blocos de $b$ \emph{bits}, onde $R$ e $C$
 são, portanto, parâmetros de espaço.
@@ -291,7 +296,7 @@ SSE2, e $Rt = 256$ em sua versão AVX2.
 
 \subsection{A função de compressão em AVX2 }\label{sec-compression-fn-avx2}
 
-Esta seção detalha as mudanças feitas na implementação de referência da
+Esta Seção detalha as mudanças feitas na implementação de referência da
 função de compressão do Lyra2 para aproveitar as instruções vetoriais do
 conjunto AVX2.
 
@@ -435,7 +440,7 @@ alinhamento de memória nos operandos das novas instruções.
 \section{Resultados experimentais }
 \label{sec-experimental}
 
-Esta seção apresenta os resultados de uma comparação de desempenho entre
+Esta Seção apresenta os resultados de uma comparação de desempenho entre
 diferentes implementações do Lyra2. Os testes foram conduzidos em
 dois ambientes diferentes: um Macbook Pro Retina modelo Mid-2012 rodando
 o sistema operacional OSX na versão 10.10.4, com um processador Intel
