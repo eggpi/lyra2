@@ -169,11 +169,11 @@ duas partes com tamanhos $r$ (taxa) e $c$ (capacidade)
 \end{figure}
 
 Pode-se definir, ainda, uma construção similar à da esponja, denominada
-\emph{duplex}, em que se mantém o estado interno entre aplicações. Nela,
-as operações de \emph{absorb} e \emph{squeeze} são substituídas por uma
-operação de \emph{duplexing}, na qual um bloco de entrada é absorvido e
-um bloco de saída é imediatamente produzido. A Figura \ref{img-duplex}
-ilustra a construção de \emph{duplex}.
+\emph{duplex}, em que se mantém o estado interno entre aplicações. Nela, as
+operações de \emph{absorb} e \emph{squeeze} são substituídas por uma operação
+de \emph{duplexing}, na qual um bloco de entrada passa por \emph{padding}
+individualmente, é absorvido, e um bloco de saída é imediatamente produzido. A
+Figura \ref{img-duplex} ilustra a construção de \emph{duplex}.
 
 \begin{figure}[htbp]
 \centering
@@ -181,9 +181,15 @@ ilustra a construção de \emph{duplex}.
 \caption{A construção de duplex, adaptado de~\cite{sponge}.\label{img-duplex}}
 \end{figure}
 
-O Lyra2 utiliza uma versão modificada da construção de \emph{duplex}, em
-que as operações de \emph{absorb} e \emph{squeeze} também são
-suportadas, e podem ser efetuadas independentemente.
+Embora semelhantes, esponja e \emph{duplex} são tipicamente tratadas como
+construções distintas na literatura \cite{sponge} e em implementações
+\footnote{A exemplo da implementação de referência da Keccak (SHA-3), em
+\url{https://github.com/gvanas/KeccakCodePackage}}. O Lyra2 utiliza uma versão
+modificada da construção de \emph{duplex}, em que as operações de esponja
+também são suportadas. Dessa forma, a esponja do Lyra2 é capaz de realizar
+\emph{duplexing} de blocos individuais de tamanho $r$, bem como
+\emph{absorbing} e \emph{squeezing} de entradas de tamanho arbitrário, e todas
+essas operações compartilham o mesmo estado interno.
 
 \subsection{A função de compressão}\label{sec-compression-fn}
 
