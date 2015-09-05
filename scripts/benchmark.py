@@ -31,8 +31,10 @@ def parse_time(s):
 
 def parse_stdev(s):
     sdelim = "Standard deviation: "
+    edelim = " us"
     assert s.startswith(sdelim)
-    return float(s[len(sdelim):])
+    assert s.endswith(edelim)
+    return float(s[len(sdelim):-len(edelim)])
 
 def build(builds):
     binaries = []
@@ -122,7 +124,7 @@ for results_lines in it:
     timings = map(parse_time, next(it))
     sdevs = map(parse_stdev, next(it))
     for i, (name, timing, sdev) in enumerate(zip(build_names, timings, sdevs)):
-        print "    %s: %d us (stdev: %.2f)" % (name, timing, sdev),
+        print "    %s: %d us (stdev: %.2f us)" % (name, timing, sdev),
         results[parameters][name] = (timing, sdev)
         if i == len(timings) - 1:
             print

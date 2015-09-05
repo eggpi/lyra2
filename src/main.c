@@ -78,7 +78,8 @@ main(void) {
 
         qsort(results, NMEASUREMENTS, sizeof(results[0]), cmp);
         printf("Median time: %lu us\n", results[NMEASUREMENTS/2]);
-        printf("Standard deviation: %.2f\n", compute_standard_deviation(results));
+        printf("Standard deviation: %.2f us\n",
+               compute_standard_deviation(results));
         printf("\n");
     }
 
