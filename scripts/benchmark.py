@@ -16,25 +16,6 @@ except ImportError:
             return ''
     term = FakeTerminal()
 
-BINARIES_DIR = "bench-binaries"
-if os.path.isdir(BINARIES_DIR):
-    shutil.rmtree(BINARIES_DIR)
-if not os.path.isdir(BINARIES_DIR):
-    os.mkdir(BINARIES_DIR)
-
-RESULTS_DIR = "bench-results"
-if os.path.isdir(RESULTS_DIR):
-    shutil.rmtree(RESULTS_DIR)
-if not os.path.isdir(RESULTS_DIR):
-    os.mkdir(RESULTS_DIR)
-
-if sys.platform.startswith('linux'):
-    RESULTS_FILE = "Linux.json"
-elif sys.platform.startswith('darwin'):
-    RESULTS_FILE = "OSX.json"
-else:
-    assert False, "Unknown platform?"
-
 def usage():
     print >>sys.stderr, "Usage: " + sys.argv[0] + " <build A> ... <ref build>"
     print >>sys.stderr, "Available builds are:",
@@ -76,6 +57,25 @@ AVAILABLE_BUILDS = {
 
 if len(sys.argv) == 1:
     usage()
+
+BINARIES_DIR = "bench-binaries"
+if os.path.isdir(BINARIES_DIR):
+    shutil.rmtree(BINARIES_DIR)
+if not os.path.isdir(BINARIES_DIR):
+    os.mkdir(BINARIES_DIR)
+
+RESULTS_DIR = "bench-results"
+if os.path.isdir(RESULTS_DIR):
+    shutil.rmtree(RESULTS_DIR)
+if not os.path.isdir(RESULTS_DIR):
+    os.mkdir(RESULTS_DIR)
+
+if sys.platform.startswith('linux'):
+    RESULTS_FILE = "Linux.json"
+elif sys.platform.startswith('darwin'):
+    RESULTS_FILE = "OSX.json"
+else:
+    assert False, "Unknown platform?"
 
 build_names = sys.argv[1:]
 build_commands = map(AVAILABLE_BUILDS.get, sys.argv[1:])

@@ -23,7 +23,7 @@ The `ref` directory contains an updated reference implementation for comparison
 purposes. Use the `benchmark.py` script to build both implementations and
 compare their speeds:
 
-    $ ./benchmark.py
+    $ ./scripts/benchmark.py
 
 This will perform the same tests as above for both this and the reference
 implementation and output their relative speed.
