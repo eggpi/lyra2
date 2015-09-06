@@ -443,6 +443,30 @@ não-triviais feitas no restante do código da implementação para
 habilitar nela o uso de AVX2 dizem respeito aos requerimentos de
 alinhamento de memória nos operandos das novas instruções.
 
+\section{Contribuições para a implementação de referência }
+\label{sec-contribuicoes}
+
+A adoção de um tamanho $R_{t}$ para as rotações de bits independente de $W$ no
+Algoritmo \ref{lyra2-alg} é uma decorrência deste trabalho. Versões anteriores
+da especificação definiam o operador $\boxplus$ como adição módulo $2^{W}$,
+onde $W$ é definido como o tamanho da palavra na arquitetura utilizada, ou de
+um vetor em implementações vetorizadas (por exemplo, $128$ \emph{bits} com SSE2).
+
+No entanto, observou-se que a implementação de referência sempre executava
+adições palavra-a-palavra (tipicamente $64$ \emph{bits}) mesmo em
+implementações vetorizadas. A solução encontrada pelos autores do Lyra2 foi
+desacoplar $R_{t}$, que passa a ser definido como o tamanho de um vetor, de
+$W$, que é sempre o tamanho da palavra na arquitetura utilizada. Dessa forma,
+tanto rotações de blocos por $R_{t}$ quanto adições de tamanho $W$ podem ser
+efetuadas de forma correta e eficiente.
+
+Este trabalho revelou ainda outros problemas menores na especificação, como o
+uso de um índice incorretos no acesso a células da matriz de estado no
+algoritmo. Foram encontrados ainda diversos \emph{bugs} na implementação de
+referência, tais como uma implementação incorreta do operador $LSW(n)$ e a
+initialização de colunas em ordem incorreta no \emph{Filling loop} do Algoritmo
+\ref{lyra2-alg}.
+
 \section{Resultados experimentais }
 \label{sec-experimental}
 
