@@ -193,11 +193,15 @@ essas operações compartilham o mesmo estado interno.
 
 \subsection{A função de compressão}\label{sec-compression-fn}
 
-Conforme visto anteriormente, a construção de esponja depende de uma
-função $f$, denominada função de compressão. Para a esponja usada no
-Lyra2, a função de compressão é uma versão levemente adaptada da função
-$G$ que integra a função de \emph{hash} BLAKE2b \cite{blake2b} . A função
-$G(a, b, c, d)$ utilizada é dada por:
+Conforme visto anteriormente, a construção de esponja depende de uma função
+$f$, denominada função de compressão. Para a esponja usada no Lyra2, a função
+de compressão é uma versão levemente adaptada da função $G$ que integra a
+função de \emph{hash} BLAKE2b \cite{blake2b}.
+
+Especificamente, no Lyra2, são omitidos os parâmetros $m$ (mensagem) e $\sigma$
+(índices para permutação da mensagem), e a função usa como entrada e saída
+apenas os dados já presentes na matriz de estado. Dessa forma, a função $G(a,
+b, c, d)$ utilizada é dada por:
 \begin{align*}
 \begin{split}
 & a \leftarrow a + b \\
