@@ -85,6 +85,15 @@ velocidade com que um atacante pode fazer tentativas sequenciais,
 enquanto o de espaço visa a proteger contra ataques que empregam \emph{hardware}
 dedicado ou GPUs, caracterizados pelo paralelismo e escassez de memória.
 
+Dessa forma, implementações eficientes de novos esquemas de \emph{hash} de
+senhas, juntamente com suas análises de desempenho, são um tema recorrente
+tanto no contexto do \emph{Password Hashing Competition}
+\cite{cryptoeprint:2015:678} quanto no trabalho de pesquisadores externos
+\cite{chang2015performance}, uma vez que tais resultados fornecem embasamento
+para a escolha de parâmetros do esquema e para que se estimem suas garantias de
+segurança quando empregado em ambientes diversos de \emph{hardware} e
+\emph{software}.
+
 Neste trabalho, foi produzida uma implementação do
 esquema de \emph{hash} de senhas Lyra2, proposta por pesquisadores
 brasileiros e finalista do \emph{Password Hashing Competition}\footnote{\url{https://password-hashing.net/}}, aproveitando
