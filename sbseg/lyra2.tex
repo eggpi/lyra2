@@ -133,7 +133,7 @@ $\lfloor \cdot \rfloor l$ & Truncagem para $l$ \emph{bits}\tabularnewline
 $\ggg n$ & Rotação $n$ \emph{bits} à direita\tabularnewline
 $\boxplus$ & Adição sem carry entre palavras\tabularnewline
 $||$ & Concatenação\tabularnewline
-$len(n)$ & Tamanho em bytes de $n$\tabularnewline
+$len(n)$ & Tamanho em \emph{bytes} de $n$\tabularnewline
 $LSW(n)$ & Palavra menos significativa de $n$\tabularnewline
 $rotRt(n)$ & Rotação $Rt$ \emph{bits} à direita de $n$\tabularnewline
 $rotRt^{m}(n)$ & Rotação $m \cdot Rt$ \emph{bits} à direita de
@@ -235,7 +235,7 @@ coluna, depois aos de cada diagonal. Essas oito aplicações constituem uma
 \emph{rodada}, e o algoritmo faz transformações do estado em conjuntos de 12
 rodadas por vez.
 
-No Lyra2, o estado da esponja contém $128$ bytes e é visto como uma matriz de
+No Lyra2, o estado da esponja contém $128$ \emph{bytes} e é visto como uma matriz de
 estado linearizada, e as rodadas são definidas de forma análoga. No entanto, a
 fim de melhorar o desempenho do algoritmo, a maior parte das compressões
 efetuadas pela esponja não utiliza $\rho_{max} = 12$ rodadas, mas sim $\rho <
@@ -490,7 +490,7 @@ distribuição Linux Fedora 18. O recurso TurboBoost, que aumenta dinamicamente 
 frequência do processador, foi desativado em ambas.
 
 Cada implementação foi executada $1000$ vezes em prioridade normal com as
-mesmas entradas e uma saída $64$ bytes, para três conjuntos de parâmetros $R$ e
+mesmas entradas e uma saída $64$ \emph{bytes}, para três conjuntos de parâmetros $R$ e
 $T$ do Lyra2, mantendo-se $C = 256$, valor sugerido pela implementação de
 referência. A mediana dos tempos dessas execuções foi tomada como métrica final
 de desempenho para cada conjunto de parâmetros.
