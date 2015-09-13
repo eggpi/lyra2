@@ -21,14 +21,14 @@
 
 \begin{document}
 
-\title{Implementação eficiente em \emph{software}\\ do esquema de hash de senhas Lyra2 em arquiteturas modernas}
+\title{Implementação eficiente em \emph{software}\\ da função Lyra2 em arquiteturas modernas}
 
 \author{Guilherme P. Gonçalves\inst{1}, Diego F. Aranha\inst{1}}
 
 \address{Laboratório de Segurança e Criptografia (LASCA)\\
 	Instituto de Computação (IC) -- Universidade Estadual de Campinas (Unicamp)\\
-	Av. Albert Einsten, 1251 -- Campinas -- SP -- Brasil
-	\email{guilherme.p.gonc@gmail.com,dfaranha@ic.unicamp.br}
+	Av. Albert Einstein, 1251 -- Campinas/SP -- Brasil\vspace{-0.25cm}
+	\email{guilherme.p.gonc@gmail.com,dfaranha@ic.unicamp.br}\vspace{-0.25cm}
 }
 
 \maketitle
@@ -41,16 +41,17 @@ according to version 2.5 of its specification. The resulting implementation empl
 AVX2 vector instructions for a performance improvement of 30\% over the reference
 implementation. In practice, it is important to know the precise performance of such primitives to inform
 parameter choice and corresponding security guarantees.
+\vspace{-0.25cm}
 \end{abstract}
 
 \begin{resumo}
 O problema de autenticação por senha tem se tornado cada vez mais desafiador, face ao crescimento
 significativo de poder computacional na forma de \emph{hardware} dedicado e placas gráficas.
-Este trabalho apresenta uma implementação eficiente em \emph{software} do esquema de hash de senhas Lyra2 em arquiteturas Intel modernas,
+Este trabalho apresenta uma implementação eficiente em \emph{software} do esquema de \emph{hash} de senhas Lyra2 em arquiteturas Intel modernas,
 conforme a versão 2.5 de sua especificação. A implementação resultante emprega instruções vetoriais AVX2
 para ganhos de desempenho em torno de 30\% sobre a implementação de referência. Na prática, é importante
 determinar precisamente o desempenho de primitivas dessa natureza para informar a escolha de parâmetros
-e garantias de segurança correspondentes.
+e obter garantias de segurança.\vspace{-0.1cm}
 \end{resumo}
 
 \section{Introdução}
@@ -61,17 +62,17 @@ computacionais atualmente é o uso de senhas. Nesse paradigma, o usuário
 permanecer secreta, e o sistema verifica, a cada acesso, se o usuário
 conhece a senha correta. Isso implica, é claro, o armazenamento da senha
 de alguma forma no sistema.
-
+%
 Como medida de segurança, recomenda-se não armazenar a senha conforme
-fornecida pelo usuário, mas sim um \emph{hash} produzido por um esquema
+fornecida pelo usuário, mas sim um valor produzido por um esquema
 de \emph{hash} de senhas. O \emph{hash} produz uma sequência pseudoaleatória
 de \emph{bits} tal que, dado o valor de \emph{hash} $h$ de uma senha
 $s$, deve ser computacionalmente difícil descobrir qualquer senha
 (incluindo $s$) cujo \emph{hash} também seja $h$ -- uma propriedade
 conhecida como resistência ao cálculo de pré-imagem.
-Assim, em um procedimento de autenticação moderno, o sistema calcula o
+Assim, em um mecanismo de autenticação moderno, o sistema calcula o
 \emph{hash} da senha provida pelo usuário e o compara com o \emph{hash}
-que havia sido armazenado para aquele usuário ao registrá-lo. Caso os
+que havia sido armazenado durante o registro. Caso os
 \emph{hashes} sejam iguais, o acesso é autorizado.
 
 Muitas técnicas foram introduzidas para dificultar
@@ -87,7 +88,7 @@ dedicado ou GPUs, caracterizados pelo paralelismo e escassez de memória.
 
 Dessa forma, implementações eficientes de novos esquemas de \emph{hash} de
 senhas, juntamente com suas análises de desempenho, são um tema recorrente
-tanto no contexto do \emph{Password Hashing Competition}
+tanto no contexto do \emph{Password Hashing Competition}\footnote{\url{https://password-hashing.net/}}
 \cite{cryptoeprint:2015:678} quanto no trabalho de pesquisadores externos
 \cite{chang2015performance}, uma vez que tais resultados fornecem embasamento
 para a escolha de parâmetros do esquema e para que se estimem suas garantias de
@@ -96,9 +97,9 @@ segurança quando empregado em ambientes diversos de \emph{hardware} e
 
 Neste trabalho, foi produzida uma implementação do
 esquema de \emph{hash} de senhas Lyra2, proposta por pesquisadores
-brasileiros e finalista do \emph{Password Hashing Competition}\footnote{\url{https://password-hashing.net/}}, aproveitando
+brasileiros e finalista do \emph{Password Hashing Competition}, aproveitando
 conjuntos de instruções presentes em arquiteturas modernas. Acredita-se
-que o Lyra2 possua as propriedades de segurança exigidas de um esquema
+que o Lyra2 possua as propriedades de segurança exigidas de um esquema moderno
 de \emph{hash} de senhas, e sua especificação inclui parâmetros de espaço e tempo
 independentes a serem respeitados por uma implementação correta.
 A implementação resultante\footnote{Disponível em \url{https://github.com/guilherme-pg/lyra2}}
@@ -120,6 +121,8 @@ discutida).
 Para o restante deste documento, os símbolos da primeira coluna da
 Tabela~\ref{tb:notation} a seguir serão usados com o significado dado pela segunda coluna.
 
+\begingroup
+\small
 \begin{longtable}[c]{@{}cc@{}}
 \toprule
 Símbolo & Significado\tabularnewline
@@ -139,6 +142,7 @@ $n$\tabularnewline
 \caption{\label{tb:notation} Notação utilizada neste trabalho.}
 \end{longtable}
 \vspace{-1cm}
+\endgroup
 
 \section{O esquema de hash Lyra2}
 
@@ -165,7 +169,7 @@ restaurada a seu estado original para uma aplicação posterior.
 
 A Figura \ref{img-sponge} ilustra a construção de esponja. Nela, a
 entrada $M$ é dividida em blocos após o \emph{padding} e absorvida
-para gerar a saída $Z$. $f$ é uma função de compressão. A linha
+para gerar a saída $Z$. A função $f$ é uma função de compressão. A linha
 tracejada separa as etapas de \emph{absorbing} (esquerda) e
 \emph{squeezing} (direita), e o estado interno da esponja é dividido em
 duas partes com tamanhos $r$ (taxa) e $c$ (capacidade)
@@ -173,7 +177,7 @@ duas partes com tamanhos $r$ (taxa) e $c$ (capacidade)
 
 \begin{figure}[htbp]
 \centering
-\includegraphics{./img/sponge.png}
+\includegraphics[scale=0.75]{./img/sponge.png}
 \caption{A construção de esponja, adaptado de~\cite{sponge}.\label{img-sponge}}
 \end{figure}
 
@@ -206,13 +210,14 @@ Conforme visto anteriormente, a construção de esponja depende de uma função
 $f$, denominada função de compressão. Para a esponja usada no Lyra2, a função
 de compressão é uma versão levemente adaptada da função $G$ que integra a
 função de \emph{hash} BLAKE2b \cite{blake2b}.
-
+%
 Especificamente, no Lyra2, são omitidos os parâmetros $m$ (mensagem) e $\sigma$
 (índices para permutação da mensagem), e a função usa como entrada e saída
 apenas os dados já presentes na matriz de estado. Dessa forma, a função $G(a,
-b, c, d)$ utilizada é dada por:
+b, c, d)$ utilizada é dada por
+\begingroup
+\setlength{\jot}{0.1pt}
 \begin{align*}
-\begin{split}
 & a \leftarrow a + b \\
 & d \leftarrow \left(d \oplus a \right) \ggg 32 \\
 & c \leftarrow c + d \\
@@ -221,23 +226,21 @@ b, c, d)$ utilizada é dada por:
 & d \leftarrow \left(d \oplus a \right) \ggg 16 \\
 & c \leftarrow c + d \\
 & b \leftarrow \left(b \oplus c \right) \ggg 63
-\end{split}
 \end{align*}
+\endgroup
 
-No contexto do algoritmo BLAKE2b, essa função é aplicada repetidamente a
-uma matriz de estado $4 \times 4$ de inteiros de 64 \emph{bits},
-primeiramente aos elementos de cada uma das colunas, depois aos de cada
-uma das diagonais. Essas oito aplicações constituem uma \emph{rodada}, e
-o algoritmo prevê transformações de seu estado em conjuntos de 12
+No algoritmo BLAKE2b, a função é aplicada repetidamente a uma matriz de estado
+$4 \times 4$ de inteiros de 64 \emph{bits}, primeiro aos elementos de cada
+coluna, depois aos de cada diagonal. Essas oito aplicações constituem uma
+\emph{rodada}, e o algoritmo faz transformações do estado em conjuntos de 12
 rodadas por vez.
 
-No Lyra2, o estado da esponja contém $128$ bytes e é visto como uma
-matriz de estado linearizada, e as rodadas são definidas de forma
-análoga. No entanto, a fim de melhorar o desempenho do algoritmo, a
-maior parte das compressões efetuadas pela esponja não utiliza
-$\rho_{max} = 12$ rodadas, mas sim $\rho < \rho_{max}$ (na prática,
-utiliza-se $\rho = 1$). Tais operações com apenas $\rho$ rodadas são
-denominadas operações \emph{reduzidas} da esponja.
+No Lyra2, o estado da esponja contém $128$ bytes e é visto como uma matriz de
+estado linearizada, e as rodadas são definidas de forma análoga. No entanto, a
+fim de melhorar o desempenho do algoritmo, a maior parte das compressões
+efetuadas pela esponja não utiliza $\rho_{max} = 12$ rodadas, mas sim $\rho <
+\rho_{max}$ (na prática, utiliza-se $\rho = 1$). Tais operações com apenas
+$\rho$ rodadas são denominadas operações \emph{reduzidas} da esponja.
 
 \subsection{O algoritmo Lyra2 }\label{sec-lyra2-alg}
 
@@ -247,17 +250,17 @@ a mais recente do algoritmo, funciona de forma bastante similar à descrita
 nesta Seção, de forma que a implementação proposta pode ser facilmente
 atualizada.
 
-Conceitualmente, o algoritmo consiste de três etapas: \emph{bootstrapping},
-\emph{setup} e \emph{wandering}. Todas elas trabalham sobre uma matriz
-de estado de $R \times C$ blocos de $b$ \emph{bits}, onde $R$ e $C$
-são, portanto, parâmetros de espaço.
-
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\linewidth]{./img/spec.pdf}
 \caption{O algoritmo Lyra2 implementado neste trabalho\label{lyra2-alg}, conforme versão 2.5 da especificação~\cite{lyra2-spec}.}
 \end{figure}
 
+Conceitualmente, o algoritmo consiste de três etapas: \emph{bootstrapping},
+\emph{setup} e \emph{wandering}. Todas elas trabalham sobre uma matriz
+de estado de $R \times C$ blocos de $b$ \emph{bits}, onde $R$ e $C$
+são, portanto, parâmetros de espaço.
+%
 O tamanho dos blocos é definido de forma que possam ser absorvidos sem
 \emph{padding} pela esponja utilizada. Embora um bloco de $b = r$ \emph{bits}
 pareça natural tendo em vista as Figuras \ref{img-sponge} e
@@ -279,7 +282,7 @@ o tempo de execução seja limitado inferiormente pelos parâmetros de
 memória $R$ e $C$, ainda é possível aumentá-lo mantendo o consumo de
 memória constante, através do parâmetro $T$.
 
-\section{Descrição da implementação}
+\section{Descrição da implementação}\label{sec-impl}
 
 A implementação proposta foi desenvolvida, tal como a de referência, utilizando
 a linguagem C, mas com base em decisões de projeto levemente diferentes. Além
@@ -287,7 +290,7 @@ de prezar pelo desempenho, o trabalho foi desenvolvido com particular cuidado
 pela legibilidade, facilitando eventuais auditorias do código, e portabilidade,
 evitando-se utilizar extensões específicas de determinados compiladores e
 aderindo-se de forma bastante estrita ao padrão C99.
-
+%
 Uma diferença particularmente perceptível entre as implementações é que,
 enquanto a de referência utiliza largamente \emph{intrinsics} para obter
 controle fino sobre as instruções geradas, a implementação mantém os
@@ -320,9 +323,9 @@ função de compressão do Lyra2 para aproveitar as instruções vetoriais do
 conjunto AVX2.
 
 Conforme exposto na Subseção \ref{sec-compression-fn}, a função de
-compressão do Lyra2 consiste de $\rho$ rodadas da função $G$ sobre uma
+compressão $f$ do Lyra2 executa $\rho$ rodadas da função $G$ sobre uma
 matriz de estado $4 \times 4$ de $64$ \emph{bits}. Assim, para uma matriz
-da forma:
+da forma
 \begin{align*}
 \left(
 \begin{matrix}
@@ -331,7 +334,7 @@ v_{4} & v_{5} & v_{6} & v_{7} \\
 v_{8} & v_{9} & v_{10} & v_{11} \\
 v_{12} & v_{13} & v_{14} & v_{15}
 \end{matrix}
-\right)
+\right),
 \end{align*}
 uma rodada corresponde a:
 \begin{align*}
@@ -340,59 +343,61 @@ G(v_{0}, v_{4}, v_{8}, v_{12}) & G(v_{1}, v_{5}, v_{9}, v_{13}) & G(v_{2}, v_{6}
 G(v_{0}, v_{5}, v_{10}, v_{15}) & G(v_{1}, v_{6}, v_{11}, v_{12}) & G(v_{2}, v_{7}, v_{8}, v_{13}) & G(v_{3}, v_{4}, v_{9}, v_{14})
 \end{matrix}
 \end{align*}
-onde as aplicações em cada linha podem ocorrer em paralelo. No caso do
-Lyra2, o estado da esponja possui $16 \times 64 = 1024$ \emph{bits} e é
-interpretado como uma matriz de estado linearizada em ordem de linhas
-para os propósitos da função de compressão.
+onde as aplicações em cada linha podem ocorrer em paralelo. No Lyra2, o estado
+da esponja possui $16 \times 64 = 1024$ \emph{bits} e serve como uma
+matriz de estado linearizada em ordem de linhas para a função de compressão.
 
-Na implementação vetorizada de referência da BLAKE2b, cada registrador
-vetorial corresponde a mais de um inteiro de $64$ \emph{bits} da matriz de
-estado -- por exemplo, em uma implementação SSE2, $v_{0}$ e $v_{1}$
-compartilham um registrador de $128$ \emph{bits}. Uma rodada consiste então
-em executar a função $G$ sobre as linhas da matriz em paralelo, rotacionar
-a $i$-ésima linha da matriz de estado por $i$ posições à esquerda, de forma
-que as antigas diagonais se tornem as colunas, aplicar a função $G$ sobre
-as (novas) colunas, e desfazer as rotações~\cite{blake2b}. O
-procedimento de rotação das linhas é chamado de \emph{diagonalização}.
+Na implementação vetorizada de referência da BLAKE2b, cada registrador vetorial
+contém mais de um inteiro da matriz de estado -- por exemplo, com SSE2, $v_{0}$
+e $v_{1}$ compartilham um vetor de $128$ \emph{bits}. Uma rodada consiste em
+executar $G$ sobre as linhas da matriz em paralelo, então
+\emph{diagonalizá-la}, rotacionando a $i$-ésima linha $i$ posições à esquerda,
+transformando as diagonais em colunas, aplicar a função $G$ sobre as (novas)
+colunas, e desfazer as rotações~\cite{blake2b}.
 
-Dessa forma, uma versão AVX2 da função de compressão pode utilizar as
-mesmas técnicas que uma versão SSE2, adaptadas para o fato de que os
-registradores de $256$ \emph{bits} comportam uma linha inteira da matriz de
-estado por vez. Especificamente, o código AVX2 produzido para este
-trabalho utiliza as novas instruções \texttt{vpaddq} para as adições de
-$64$ \emph{bits}, \texttt{vpxor} para as operações de XOR, \texttt{vpshufd} e
-\texttt{vpshufd} para as rotações, e \texttt{vpermq} para as rotações de
-linhas da matriz.
+Essas mesmas técnicas podem ser usadas em uma versão AVX2 de $f$, em que
+cada registrador de $256$ \emph{bits} comporta uma linha inteira da matriz. O
+código AVX2 produzido para este trabalho utiliza as novas instruções
+\texttt{vpaddq} para as adições de $64$ \emph{bits}, \texttt{vpxor} para as
+operações de XOR, \texttt{vpshufd} e \texttt{vpshufd} para as rotações, e
+\texttt{vpermq} para as rotações de linhas da matriz.
+%
+No código, a implementação AVX2 possui a mesma estrutura geral que a de
+referência, apesar dos \emph{intrinsics} diferentes. A função $G$ é dividida em
+duas partes: G1 contém as instruções até a operação $\ggg 24$, e G2 contém o
+restante da função, conforme a listagem a seguir:
 
-Em termos de código, a implementação AVX2 possui a mesma estrutura
-geral que a de referência, apesar do uso de \emph{intrinsics}
-diferentes. A função $G$ é dividida nas partes G1 e G2: G1 contém as
-instruções até a rotação de 24 \emph{bits} à direita, e G2 contém o restante da
-função. G1 e G2 são implementadas conforme a listagem a seguir:
-
+\hspace{-1.5cm}\begin{tabular}{c|c}
+\begin{minipage}{0.5\textwidth}
 \begin{small}
 \begin{verbatim}
-#define G1(row1,row2,row3,row4)		\
-  row1 = _mm256_add_epi64(row1, row2);	\
-  row4 = _mm256_xor_si256(row4, row1);	\
-  row4 = _mm256_roti_epi64(row4, -32);	\
-  row3 = _mm256_add_epi64(row3, row4);	\
-  row2 = _mm256_xor_si256(row2, row3);	\
-  row2 = _mm256_roti_epi64(row2, -24);	\
-
-#define G2(row1,row2,row3,row4)		\
-  row1 = _mm256_add_epi64(row1, row2);	\
-  row4 = _mm256_xor_si256(row4, row1);	\
-  row4 = _mm256_roti_epi64(row4, -16);	\
-  row3 = _mm256_add_epi64(row3, row4);	\
-  row2 = _mm256_xor_si256(row2, row3);	\
-  row2 = _mm256_roti_epi64(row2, -63);	\
+#define G1(r1,r2,r3,r4)             \
+  row1 = _mm256_add_epi64(r2, r2);  \
+  row4 = _mm256_xor_si256(r4, r1);  \
+  row4 = _mm256_roti_epi64(r4, -32);\
+  row3 = _mm256_add_epi64(r3, r4);  \
+  row2 = _mm256_xor_si256(r2, r3);  \
+  row2 = _mm256_roti_epi64(r2, -24);\
 \end{verbatim}
 \end{small}
+\end{minipage} &
+\begin{minipage}{0.5\textwidth}
+\begin{small}
+\begin{verbatim}
+#define G2(r1,r2,r3,r4)             \
+  row1 = _mm256_add_epi64(r1, r2);  \
+  row4 = _mm256_xor_si256(r4, r1);  \
+  row4 = _mm256_roti_epi64(r4, -16);\
+  row3 = _mm256_add_epi64(r3, r4);  \
+  row2 = _mm256_xor_si256(r2, r3);  \
+  row2 = _mm256_roti_epi64(r2, -63);\
+\end{verbatim}
+\end{small}
+\end{minipage}
+\end{tabular}
 
-Cabe notar que, na listagem acima, \texttt{\_mm256\_roti\_epi64},
-responsável pelas rotações, é a única primitiva que não é um
-\emph{intrinsic}. Essa macro é definida como:
+Na listagem, \texttt{\_mm256\_roti\_epi64}, responsável pelas rotações, é a
+única primitiva que não é um \emph{intrinsic}. Essa macro é definida como:
 
 \begin{small}
 \begin{verbatim}
@@ -404,7 +409,7 @@ responsável pelas rotações, é a única primitiva que não é um
     20, 21, 22, 23, 16, 17, 18, 27, 28, 29, 30, 31, 24, 25, 26)
 \end{verbatim}
 \end{small}
-\newpage
+
 \begin{small}
 \begin{verbatim}
 #define _mm256_roti_epi64(x, c)                                    \
@@ -451,83 +456,64 @@ E, assim, uma rodada é definida como:
 onde o parâmetro \texttt{v} é uma matriz de estado linearizada, de forma
 que \texttt{v[i]} é um \texttt{\_\_m256i} contendo a $i$-ésima linha.
 
-Além dessas adaptações na função de compressão, as únicas mudanças
-não-triviais feitas no restante do código da implementação para
-habilitar nela o uso de AVX2 dizem respeito aos requerimentos de
-alinhamento de memória nos operandos das novas instruções.
+Além das adaptações em $f$, as únicas mudanças não-triviais feitas no restante
+do código para habilitar o uso do conjunto de instruções AVX2 correspondem aos
+requerimentos de alinhamento de memória nos operandos das novas instruções.
 
 \section{Contribuições para a implementação de referência }
 \label{sec-contribuicoes}
 
 A adoção de um tamanho $R_{t}$ para as rotações de bits independente de $W$ no
-Algoritmo \ref{lyra2-alg} é uma decorrência deste trabalho. Versões anteriores
-da especificação definiam o operador $\boxplus$ como adição módulo $2^{W}$,
-onde $W$ é definido como o tamanho da palavra na arquitetura utilizada, ou de
-um vetor em implementações vetorizadas (por exemplo, $128$ \emph{bits} com SSE2).
-
-No entanto, observou-se que a implementação de referência sempre executava
-adições palavra-a-palavra (tipicamente $64$ \emph{bits}) mesmo em
-implementações vetorizadas. A solução encontrada pelos autores do Lyra2 foi
-desacoplar $R_{t}$, que passa a ser definido como o tamanho de um vetor, de
-$W$, que é sempre o tamanho da palavra na arquitetura utilizada. Dessa forma,
-tanto rotações de blocos por $R_{t}$ quanto adições de tamanho $W$ podem ser
-efetuadas de forma correta e eficiente.
+Algoritmo \ref{lyra2-alg} decorre deste trabalho, após observar-se que o código
+compilado de referência implementava o operando $\boxplus$ como adição palavra
+a palavra de $64$ \emph{bits}, embora a intenção inicial dos autores da
+especificação fosse efetuar adições módulo $2^{W}$, com $W = 128$ \emph{bits}
+em SSE2. A distinção entre $R_{t}$ e $W$ permite implementar adições e rotações
+de forma eficiente e bem definida na presença de instruções vetoriais.
 
 Este trabalho revelou ainda outros problemas menores na especificação, como o
 uso de um índice incorretos no acesso a células da matriz de estado no
 algoritmo. Foram encontrados ainda diversos \emph{bugs} na implementação de
-referência, tais como uma implementação incorreta do operador $LSW(n)$ e a
+referência, como uma implementação incorreta do operador $LSW(n)$ e a
 initialização de colunas em ordem incorreta no \emph{Filling loop} do Algoritmo
 \ref{lyra2-alg}.
 
 \section{Resultados experimentais }
 \label{sec-experimental}
 
-Esta Seção apresenta os resultados de uma comparação de desempenho entre
-diferentes implementações do Lyra2. Os testes foram conduzidos em
-dois ambientes diferentes: um Macbook Pro Retina modelo Mid-2012 rodando
-o sistema operacional OSX na versão 10.10.4, com um processador Intel
-Core i7-3720QM (família Ivy Bridge) e 16 GiB de memória, e uma máquina
-com processador Intel Core i7-4770 (família Haswell) e 8GiB de memória
-rodando a distribuição Linux Fedora 18. O recurso TurboBoost, que
-aumenta dinamicamente a frequência do processador, foi desativado em
-ambas as máquinas.
+Esta Seção apresenta uma comparação de desempenho entre diferentes
+implementações do Lyra2. Os testes foram conduzidos em dois ambientes: um
+Macbook Pro Retina Mid-2012, sistema operacional OSX 10.10.4, com um
+processador Intel Core i7-3720QM (Ivy Bridge) e 16 GiB de memória, e uma
+máquina com processador Intel Core i7-4770 (Haswell) e 8GiB de memória e
+distribuição Linux Fedora 18. O recurso TurboBoost, que aumenta dinamicamente a
+frequência do processador, foi desativado em ambas.
 
-A metodologia utilizada consistiu em executar cada implementação
-$1000$ vezes com as mesmas entradas e extraindo-se uma senha de $64$
-bytes, para três conjuntos de parâmetros $R$ e $T$ do algoritmo
-Lyra2. O parâmetro $C$ foi deixado fixo em $256$, o valor sugerido
-pela implementação de referência. A mediana dos tempos levados nessas
-$1000$ execuções foi tomada como métrica final de desempenho, para
-cada conjunto de parâmetros. Os processos foram executados usando
-prioridade normal, o padrão em ambos os sistemas.
+Cada implementação foi executada $1000$ vezes em prioridade normal com as
+mesmas entradas e uma saída $64$ bytes, para três conjuntos de parâmetros $R$ e
+$T$ do Lyra2, mantendo-se $C = 256$, valor sugerido pela implementação de
+referência. A mediana dos tempos dessas execuções foi tomada como métrica final
+de desempenho para cada conjunto de parâmetros.
 
-Na implementação de referência, as opções de compilação
-\begin{small}\verb|-flto|\end{small},
+Para cada código, testaram-se os binários gerados pelos compiladores LLVM 3.4.2
+e GCC 4.9.0, avaliando-se assim a escolha desta implementação de delegar a maior parte
+das escolhas de instruções para o compilador, conforme a Seção \ref{sec-impl}.
+No entanto, devido ao limitado suporte ao GCC em OSX, apenas medições com LLVM
+foram feitas nessa plataforma. Na implementação de referência, as opções de
+compilação \begin{small}\verb|-flto|\end{small},
 \begin{small}\verb|-mprefer-avx128|\end{small} e
-\begin{small}\verb|-ftree-vectorizer-verbose|\end{small} foram desativadas na
-compilação com LLVM, visto que a primeira causou erros de ligação em Linux, e
-as demais não são suportadas por esse compilador.
+\begin{small}\verb|-ftree-vectorizer-verbose|\end{small} foram desativadas sob
+LLVM: a primeira causou erros de ligação em Linux, e as demais não são
+suportadas.
 
-Para cada um dos códigos, foram testados os binários gerados pelos
-compiladores LLVM e GCC, nas respectivas versões 3.4.2 e 4.9.0. No
-entanto, devido ao limitado suporte ao GCC no sistema OSX, apenas
-medições com LLVM foram feitas nessa plataforma. Essas medições visam a
-avaliar o impacto de delegar a maior parte das escolhas de instruções
-para o compilador no código, indo de encontro à abordagem da
-implementação de referência, que se baseia fortemente no uso explícito
-de \emph{intrinsics}.
-
-A Figura \ref{results-linux} ilustra os resultados experimentais obtidos
-no ambiente Linux. Nela, os nomes \emph{ref-gcc} e \emph{ref-clang}
-correspondem à implementação de referência compilada, respectivamente,
-com GCC e LLVM. Os nomes \emph{gcc} e \emph{clang} são análogos, mas
-referem-se à implementação proposta neste trabalho. Finalmente,
-\emph{avx2-clang} e \emph{avx2-gcc} correspondem à variante que utiliza
-as instruções AVX2, descrita na Subseção \ref{sec-compression-fn-avx2},
-novamente usando os dois compiladores analisados. Os tempos de execução
-foram normalizados pelo da medição \emph{ref-gcc}, para cada conjunto de
-parâmetros.
+A Figura \ref{results-linux} ilustra os resultados experimentais obtidos no
+ambiente Linux. Nela, os nomes \emph{ref-gcc} e \emph{ref-clang} correspondem à
+implementação de referência compilada, respectivamente, com GCC e LLVM. Os
+nomes \emph{gcc} e \emph{clang} são análogos, mas referem-se à implementação
+deste trabalho. Finalmente, \emph{avx2-clang} e \emph{avx2-gcc} correspondem à
+variante com instruções AVX2, descrita na Subseção
+\ref{sec-compression-fn-avx2}. Os tempos de execução foram normalizados pelo da
+medição \emph{ref-gcc} em cada teste.
 
 \begin{figure}[htbp]
 \centering
@@ -535,35 +521,30 @@ parâmetros.
 \caption{Tempos de execução normalizados para as três configurações de parâmetros em Linux\label{results-linux}.}
 \end{figure}
 
-As versões AVX2, conforme esperado, tiveram desempenho melhor do que as
-demais. Nelas, o compilador utilizado não trouxe diferença significativa
-(\emph{avx2-clang} foi apenas cerca de $3\%$ mais rápida do que
-\emph{avx2-gcc} em todos os testes), e ambas foram cerca de $30\%$
-mais rápidas do que \emph{ref-gcc} em todos os testes. Os desvios padrão
-para as medições destas versões foram baixos em todos os testes: cerca de $6$,
-$9$ e $18 \mu s$, respectivamente, para os testes representados na Figura
-\ref{results-linux}.
+As versões AVX2, conforme esperado, foram superiores às demais. Nelas, o
+compilador utilizado não trouxe diferença significativa (\emph{avx2-clang} foi
+apenas cerca de $3\%$ mais rápida do que \emph{avx2-gcc} em todos os testes), e
+ambas foram cerca de $30\%$ mais rápidas do que \emph{ref-gcc} em todos os
+testes. Os desvios padrão ficaram abaixo de $0.5\%$ da mediana em todas as
+medições.
+%
+Entre as versões SSE2, \emph{clang} foi consistentemente a mais rápida, com
+desempenho cerca de $17\%$ superior a \emph{ref-gcc}. Observou-se a maior
+diferença com $R = T = 16$, em que \emph{clang} foi $17.76\%$ mais rápida do
+que \emph{ref-gcc} ($1445 \mu s$ contra $1757 \mu s$). Novamente, os desvios
+padrão foram inferiores a $0.5\%$ das medianas.
 
-A escolha do compilador influenciou sensivelmente a implementação de
-referência. Para todos os conjuntos de parâmetros, \emph{ref-clang} foi cerca
-de $9\%$ mais lenta do que \emph{ref-gcc}. Para a implementação deste trabalho,
-no entanto, observou-se influência contrária dos compiladores, e de muito menor
-magnitude: \emph{gcc} foi apenas cerca de $1.5\%$ mais lenta do que \emph{clang}
-em todos os testes.
+Em todos os testes, \emph{ref-clang} foi cerca de $9\%$ mais lenta do que
+\emph{ref-gcc}, enquanto que, na implementação deste trabalho, a influência foi
+contrária e de menor magnitude: \emph{gcc} foi apenas $1.5\%$ mais lenta do que
+\emph{clang}. Como esta implementação foi desenvolvida no ambiente com OSX e
+LLVM, e a de referência em ambiente Linux com GCC, essas discrepâncias refletem
+a maior exposição de cada implementação à plataforma em que foi escrita.
 
-Entre as versões SSE2, \emph{clang} foi a mais rápida para todos os conjuntos
-de parâmetros, com desempenho cerca de $17\%$ melhor do que \emph{ref-gcc}. A
-maior diferença observada ocorreu com $R = T = 16$, em que \emph{clang} foi
-$17.76\%$ mais rápida do que \emph{ref-gcc} ($1445 \mu s$ contra $1757 \mu s$).
-Os desvios padrão para essas versões também se mantiveram baixos em todas as
-configurações: em torno de $6$, $11$ e $20 \mu s$, respectivamente.
-
-A Figura \ref{results-osx} mostra os resultados dos mesmos testes
-executados na máquina rodando OSX. Como nela não há suporte ao conjunto
-de instruções AVX2, não foi possível avaliar \emph{avx2-clang} nessa
-plataforma. Aqui registrou-se significativa diferença de desempenho entre os
-binários, com \emph{clang} sendo cerca de $25\%$ mais rápida do que a
-implementação de referência em todos os testes.
+A Figura \ref{results-osx} mostra os resultados dos mesmos testes executados na
+máquina rodando OSX. Esse \emph{hardware} não oferece instruções AVX2, de forma
+que não foi possível avaliar \emph{avx2-clang}. O binário \emph{clang} foi
+cerca de $25\%$ mais rápido do que \emph{ref-clang} em todos os testes.
 
 \begin{figure}[htbp]
 \centering
@@ -572,31 +553,20 @@ implementação de referência em todos os testes.
 parâmetros em OSX\label{results-osx}.}
 \end{figure}
 
-Cabe notar, no entanto, que as medições no ambiente OSX apresentaram desvios
-padrão bem maiores do que em Linux para ambas as implementações. No teste de
-maior diferença relativa entre as implementações, $R = T = 16$, \emph{clang} foi
-$26.76\%$ mais rápida do que \emph{ref-clang} ($1888 \mu s$ contra $2578 \mu
-s$), com desvios padrão de $21.90 \mu s$ e $35.34 \mu s$, respectivamente. Para
-o terceiro conjunto de parâmetros, $R = T = 64$, \emph{clang} teve alto desvio
-padrão ($177.39 \mu s$, contra $121.31 \mu s$ de \emph{ref-clang}), mas
-desempenho ainda $25.31\%$ melhor.
-
-Dado que a implementação proposta foi desenvolvida no ambiente com OSX e
-LLVM, e a de referência foi produzida em ambiente Linux com GCC,
-pode-se dizer que as diferenças de desempenho entre compiladores
-refletem a maior exposição de cada implementação à plataforma em que foi
-escrita.
+Cabe notar que, neste ambiente, os desvios padrão foram maiores do que em Linux
+para ambas as implementações. No teste de maior diferença relativa, $R = T =
+16$, \emph{clang} foi $26.76\%$ mais rápida ($1888 \mu s$ contra $2578 \mu s$),
+com desvios padrão de $21.90 \mu s$ e $35.34 \mu s$, respectivamente. Para $R =
+T = 64$, \emph{clang} teve alto desvio padrão ($177.39 \mu s$, contra $121.31
+\mu s$ de \emph{ref-clang}), mas desempenho ainda $25.31\%$ melhor.
 
 \section{Conclusão}
 
-Este trabalho produziu uma implementação de um novo esquema de
-\emph{hash} de senhas tomando proveito de arquiteturas e compiladores
-modernos. A implementação é compatível e competitiva com a de
-referência, tendo-se obtido significativa melhora de desempenho com o
-uso conjunto de instruções AVX2, e seu desenvolvimento contribuiu com a
-evolução da especificação.
-É importante determinar precisamente o desempenho de primitivas dessa natureza para tanto informar a escolha de parâmetros
-quanto estimar as garantias de segurança correspondentes.
+Este trabalho propõe uma implementação de um novo esquema de \emph{hash} de
+senhas que supera a de referência em desempenho empregando instruções AVX2,
+além de ter contribuído com a especificação. O estudo da eficiência de
+primitivas desse tipo é importante pois orienta escolhas de parâmetros e
+estimativas de níveis de segurança.
 
 \bibliographystyle{sbc}
 \bibliography{lyra2}
